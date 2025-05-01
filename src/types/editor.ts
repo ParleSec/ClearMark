@@ -1,4 +1,4 @@
-import { BaseEditor, Descendant, Node, Path, Point, Range } from 'slate';
+import { BaseEditor, BaseElement as SlateBaseElement, Descendant, Path, Point, Range } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { HistoryEditor } from 'slate-history';
 import React from 'react';
@@ -16,126 +16,21 @@ export type ElementType =
   | 'code-block'
   | 'image'
   | 'link'
-  | 'table';
+  | 'table'
+  | 'table-row'
+  | 'table-cell';
 
 // Custom elements
-export type ParagraphElement = {
-  type: 'paragraph';
-  children: Descendant[];
-};
-
-export type HeadingOneElement = {
-  type: 'heading-one';
-  children: Descendant[];
-};
-
-export type HeadingTwoElement = {
-  type: 'heading-two';
-  children: Descendant[];
-};
-
-export type HeadingThreeElement = {
-  type: 'heading-three';
-  children: Descendant[];
-};
-
-export type BlockQuoteElement = {
-  type: 'block-quote';
-  children: Descendant[];
-};
-
-export type BulletedListElement = {
-  type: 'bulleted-list';
-  children: Descendant[];
-};
-
-export type NumberedListElement = {
-  type: 'numbered-list';
-  children: Descendant[];
-};
-
-export type ListItemElement = {
-  type: 'list-item';
-  children: Descendant[];
-};
-
-export type CodeBlockElement = {
-  type: 'code-block';
-  children: Descendant[];
-};
-
-export type ImageElement = {
-  type: 'image';
-  url: string;
-  alt?: string;
-  size?: 'small' | 'medium' | 'large' | 'full';
-  alignment?: 'left' | 'center' | 'right';
-  children: Descendant[];
-};
-
-export type LinkElement = {
-  type: 'link';
-  url: string;
-  children: Descendant[];
-};
-
-export type TableElement = {
-  type: 'table';
-  children: Descendant[];
-};
-
-// Union of all element types
-export type CustomElement =
-  | ParagraphElement
-  | HeadingOneElement
-  | HeadingTwoElement
-  | HeadingThreeElement
-  | BlockQuoteElement
-  | BulletedListElement
-  | NumberedListElement
-  | ListItemElement
-  | CodeBlockElement
-  | ImageElement
-  | LinkElement
-  | TableElement;
-
-// Custom text formatting
-export type CustomText = {
+export interface CustomText {
   text: string;
   bold?: boolean;
   italic?: boolean;
   code?: boolean;
-};
+  underline?: boolean;
+}
 
 // Extended editor interface with custom methods
-export interface CustomEditor extends BaseEditor, ReactEditor, HistoryEditor {
-  // Void element checking
-  isVoid: (element: CustomElement) => boolean;
-  
-  // Inline element checking
-  isInline: (element: CustomElement) => boolean;
-  
-  // Data insertion handling
-  insertData: (data: DataTransfer) => void;
-  
-  // Keyboard deletion handling
-  deleteBackward: (unit: 'character' | 'word' | 'line' | 'block') => void;
-  
-  // Keyboard event handling
-  onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
-  
-  // Additional methods that might be added by plugins
-  insertNode: (node: Node) => void;
-  
-  // Check if selection is collapsed
-  isCollapsed: (selection: Range) => boolean;
-  
-  // Wrap nodes in an element
-  // (inherited from BaseEditor, do not redeclare to avoid type conflicts)
-  
-  // Selection handling
-  collapse: (options?: { edge?: 'anchor' | 'focus' | 'start' | 'end' }) => void;
-}
+export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 
 // Location type alias for convenience
 type Location = Path | Point | Range;
@@ -159,3 +54,64 @@ export const DEFAULT_EDITOR_CONTENT: EditorState = [
     children: [{ text: 'Start writing your blog post here...' }],
   },
 ];
+
+export interface BaseElement extends SlateBaseElement {
+  type: string;
+  align?: 'left' | 'center' | 'right';
+  children: (CustomText | CustomElement)[];
+}
+
+export interface ParagraphElement extends BaseElement {
+  type: 'paragraph';
+}
+
+export interface HeadingElement extends BaseElement {
+  type: 'heading-one' | 'heading-two' | 'heading-three';
+}
+
+export interface BlockQuoteElement extends BaseElement {
+  type: 'block-quote';
+}
+
+export interface ListElement extends BaseElement {
+  type: 'bulleted-list' | 'numbered-list';
+}
+
+export interface ListItemElement extends BaseElement {
+  type: 'list-item';
+}
+
+export interface ImageElement extends BaseElement {
+  type: 'image';
+  url: string;
+  alt?: string;
+}
+
+export interface LinkElement extends BaseElement {
+  type: 'link';
+  url: string;
+}
+
+export interface TableElement extends BaseElement {
+  type: 'table';
+}
+
+export interface TableRowElement extends BaseElement {
+  type: 'table-row';
+}
+
+export interface TableCellElement extends BaseElement {
+  type: 'table-cell';
+}
+
+export type CustomElement =
+  | ParagraphElement
+  | HeadingElement
+  | BlockQuoteElement
+  | ListElement
+  | ListItemElement
+  | ImageElement
+  | LinkElement
+  | TableElement
+  | TableRowElement
+  | TableCellElement;

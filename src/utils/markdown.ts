@@ -1,4 +1,4 @@
-import { Node, Text } from 'slate';
+import { Node, Text, Element as SlateElement } from 'slate';
 import { 
   CustomElement, 
   CustomText, 
@@ -9,7 +9,8 @@ import {
   LeafToMarkdown, 
   MarkdownOutput, 
   PostMetadata, 
-  SerializeOptions 
+  SerializeOptions,
+  MarkdownElementType
 } from '../types/markdown';
 
 /**
@@ -78,7 +79,48 @@ const elementToMarkdown: ElementToMarkdown = {
   
   'link': (node, children) => `[${children}](${node.url})`,
 
-  'table': (node, children) => children,
+  'table': (node: CustomElement, _) => {
+    // Instead of relying on children string, directly process the table structure
+    const rows = node.children
+      .filter((row): row is CustomElement => 
+        SlateElement.isElement(row) && row.type === MarkdownElementType.TableRow
+      )
+      .map(row => {
+        // Process each cell in the row
+        const cells = row.children
+          .filter((cell): cell is CustomElement =>
+            SlateElement.isElement(cell) && cell.type === MarkdownElementType.TableCell
+          )
+          .map(cell => {
+            // Get the cell's text content
+            const content = cell.children
+              .filter(Text.isText)
+              .map(n => n.text)
+              .join('')
+              .trim();
+            return content;
+          });
+        
+        // Format row with proper separators
+        return '| ' + cells.join(' | ') + ' |';
+      });
+
+    if (rows.length === 0) return '';
+
+    // Create separator based on first row's cell count
+    const firstRow = node.children.find((row): row is CustomElement => 
+      SlateElement.isElement(row) && row.type === MarkdownElementType.TableRow
+    );
+    const columnCount = firstRow?.children?.length || 0;
+    const separator = '| ' + Array(columnCount).fill('---').join(' | ') + ' |';
+
+    // Combine with proper newlines
+    return rows[0] + '\n' + separator + '\n' + rows.slice(1).join('\n');
+  },
+
+  'table-row': (_, children) => children, // Pass through to table handler
+
+  'table-cell': (_, children) => children.trim(), // Pass through to table handler
 };
 
 /**

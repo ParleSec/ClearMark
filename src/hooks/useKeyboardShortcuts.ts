@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import { Editor, Element, Transforms, Node } from 'slate';
-import { useSlate } from 'slate-react';
+import { Editor, Element as SlateElement, Transforms, Node } from 'slate';
 
 import { MarkdownFormat, MarkdownElementType } from '../types/markdown';
 import { registerGlobalShortcuts, matchesShortcut } from '../utils/keyboard';
 import { SHORTCUTS } from '../utils/constants';
 import { useEditorContext } from '../context/EditorContext';
-import { CustomElement, CustomText } from '../types/editor';
+import { CustomElement } from '../types/editor';
 
 interface ShortcutOptions {
   // Add any global application shortcuts not handled by the editor
@@ -17,15 +16,15 @@ interface ShortcutOptions {
 }
 
 /**
- * Custom hook to handle keyboard shortcuts
+ * Enhanced keyboard shortcuts hook that doesn't use useSlate directly
  */
 export function useKeyboardShortcuts(options: ShortcutOptions = {}) {
-  const editor = useSlate();
   const { 
     showMarkdown, 
     setShowMarkdown, 
     focusMode, 
-    setFocusMode 
+    setFocusMode,
+    toggleFormat  // Use the context's toggleFormat for consistency
   } = useEditorContext();
   
   // Register global shortcuts
@@ -57,7 +56,7 @@ export function useKeyboardShortcuts(options: ShortcutOptions = {}) {
         }
       },
       
-      // Toggle focus mode (Ctrl+F / Cmd+F)
+      // Toggle focus mode (Ctrl+Shift+F)
       'mod+shift+f': (event) => {
         event.preventDefault();
         if (options.onToggleFocusMode) {
@@ -82,18 +81,15 @@ export function useKeyboardShortcuts(options: ShortcutOptions = {}) {
   
   // Handle editor-specific shortcuts (these work inside the editor)
   const handleEditorShortcuts = (event: React.KeyboardEvent) => {
-    // Loop through defined shortcuts
+    // Loop through defined shortcuts in SHORTCUTS constant
     for (const [shortcut, action] of Object.entries(SHORTCUTS)) {
       if (matchesShortcut(event, shortcut)) {
         event.preventDefault();
         
         const { type, isBlock } = action;
         
-        if (isBlock) {
-          toggleBlock(editor, type as MarkdownElementType);
-        } else {
-          toggleMark(editor, type as MarkdownFormat);
-        }
+        // Use the context's toggleFormat for consistency
+        toggleFormat(type, isBlock);
         
         return true;
       }
@@ -103,66 +99,4 @@ export function useKeyboardShortcuts(options: ShortcutOptions = {}) {
   };
   
   return { handleEditorShortcuts };
-}
-
-/**
- * Toggle a mark in the editor
- */
-function toggleMark(editor: Editor, format: MarkdownFormat) {
-  const isActive = isMarkActive(editor, format);
-  
-  if (isActive) {
-    Editor.removeMark(editor, format);
-  } else {
-    Editor.addMark(editor, format, true);
-  }
-}
-
-/**
- * Check if a mark is active
- */
-function isMarkActive(editor: Editor, format: MarkdownFormat) {
-  const marks = Editor.marks(editor);
-  if (!marks) return false;
-  
-  switch (format) {
-    case MarkdownFormat.Bold:
-      return !!marks.bold;
-    case MarkdownFormat.Italic:
-      return !!marks.italic;
-    case MarkdownFormat.Code:
-      return !!marks.code;
-    default:
-      return false;
-  }
-}
-
-/**
- * Toggle a block format
- */
-function toggleBlock(editor: Editor, format: MarkdownElementType) {
-  const isActive = isBlockActive(editor, format);
-  
-  Transforms.setNodes(
-    editor,
-    { type: isActive ? 'paragraph' : format } as Partial<CustomElement>,
-    { match: (n: Node) => Editor.isBlock(editor, n as any) }
-  );
-}
-
-/**
- * Check if a block format is active
- */
-function isBlockActive(editor: Editor, format: MarkdownElementType) {
-  const [match] = Editor.nodes(editor, {
-    match: (n: Node) => {
-      if (!Editor.isEditor(n) && Element.isElement(n)) {
-        const element = n as CustomElement;
-        return element.type === format;
-      }
-      return false;
-    }
-  });
-  
-  return !!match;
 }

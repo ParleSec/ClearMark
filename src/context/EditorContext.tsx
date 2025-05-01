@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
-import { createEditor, Node, Transforms, Range } from 'slate';
+import { createEditor, Node, Transforms, Range, Editor, Element as SlateElement } from 'slate';
 import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history';
 
@@ -8,14 +8,19 @@ import {
   EditorState, 
   DEFAULT_EDITOR_CONTENT,
   ImageElement,
-  LinkElement
+  LinkElement,
+  CustomElement
 } from '../types/editor';
-import { PostMetadata } from '../types/markdown';
+import { MarkdownFormat, MarkdownElementType, PostMetadata } from '../types/markdown';
 import { withImages } from '../components/editor/plugins/withImages';
 import { withLinks } from '../components/editor/plugins/withLinks';
 import { withMarkdown } from '../components/editor/plugins/withMarkdown';
 import { withShortcuts } from '../components/editor/plugins/withShortcuts';
+import { withHeadings } from '../components/editor/plugins/withHeadings';
+import { withQuote } from '../components/editor/plugins/withQuote';
 import { serializeToMarkdown } from '../utils/markdown';
+import { withTable } from '../components/editor/plugins/withTable';
+import { insertTable, insertRow, insertColumn, deleteRow, deleteColumn, isTableActive } from '../components/editor/plugins/withTable';
 
 interface EditorContextValue {
   editor: CustomEditor;
@@ -32,6 +37,14 @@ interface EditorContextValue {
   setMetadata: (metadata: PostMetadata) => void;
   insertImage: (url: string, alt?: string) => void;
   insertLink: (url: string, text?: string) => void;
+  toggleFormat: (format: MarkdownFormat | MarkdownElementType, isBlock?: boolean) => void;
+  isFormatActive: (format: MarkdownFormat | MarkdownElementType, isBlock?: boolean) => boolean;
+  insertTable: (rows?: number, cols?: number) => void;
+  insertRow: () => void;
+  insertColumn: () => void;
+  deleteRow: () => void;
+  deleteColumn: () => void;
+  isTableActive: () => boolean;
 }
 
 const EditorContext = createContext<EditorContextValue | undefined>(undefined);
@@ -45,14 +58,20 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
   children, 
   initialContent = DEFAULT_EDITOR_CONTENT 
 }) => {
-  // Create a Slate editor object that won't change across renders
+  // Create a Slate editor object with all plugins
   const editor = useMemo(() => 
-    withShortcuts(
-      withMarkdown(
-        withLinks(
-          withImages(
-            withHistory(
-              withReact(createEditor())
+    withTable(
+      withShortcuts(
+        withMarkdown(
+          withLinks(
+            withImages(
+              withQuote(
+                withHeadings(
+                  withHistory(
+                    withReact(createEditor())
+                  )
+                )
+              )
             )
           )
         )
@@ -93,6 +112,74 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     // Average reading speed: 200 words per minute
     return Math.ceil(wordCount / 200);
   }, [wordCount]);
+
+  // Format checking and toggling
+  const isFormatActive = useCallback((format: MarkdownFormat | MarkdownElementType, isBlock = false): boolean => {
+    if (isBlock) {
+      const [match] = Editor.nodes(editor, {
+        match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && (n as any).type === format,
+      });
+      return !!match;
+    } else {
+      const marks = Editor.marks(editor);
+      // Type-safe format checking
+      if (!marks) return false;
+      
+      // Safe way to check formatting marks
+      switch (format) {
+        case MarkdownFormat.Bold:
+          return marks.bold === true;
+        case MarkdownFormat.Italic:
+          return marks.italic === true;
+        case MarkdownFormat.Code:
+          return marks.code === true;
+        default:
+          return false;
+      }
+    }
+  }, [editor]);
+
+  const toggleFormat = useCallback((format: MarkdownFormat | MarkdownElementType, isBlock = false): void => {
+    if (isBlock) {
+      const isActive = isFormatActive(format, true);
+      
+      // Special handling for lists
+      if (format === MarkdownElementType.BulletedList || format === MarkdownElementType.NumberedList) {
+        // Unwrap any existing lists first
+        Transforms.unwrapNodes(editor, {
+          match: n => 
+            !Editor.isEditor(n) && 
+            SlateElement.isElement(n) && 
+            ((n as any).type === MarkdownElementType.BulletedList || (n as any).type === MarkdownElementType.NumberedList),
+          split: true,
+        });
+        
+        // If turning on list, convert paragraphs to list-items and wrap in list
+        if (!isActive) {
+          Transforms.setNodes(editor, { 
+            type: 'list-item' as const
+          });
+          Transforms.wrapNodes(editor, { 
+            type: format as MarkdownElementType,
+            children: [] 
+          } as CustomElement);
+        }
+      } else {
+        // For other block elements (headings, blockquotes)
+        Transforms.setNodes(editor, {
+          type: isActive ? 'paragraph' : format as MarkdownElementType
+        } as Partial<CustomElement>);
+      }
+    } else {
+      // Inline formatting
+      const isActive = isFormatActive(format);
+      if (isActive) {
+        Editor.removeMark(editor, format as MarkdownFormat);
+      } else {
+        Editor.addMark(editor, format as MarkdownFormat, true);
+      }
+    }
+  }, [editor, isFormatActive]);
 
   // Insert elements
   const handleInsertImage = useCallback((url: string, alt?: string) => {
@@ -135,6 +222,31 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     }
   }, [editor]);
 
+  // Table functions
+  const handleInsertTable = useCallback((rows: number = 3, cols: number = 3) => {
+    insertTable(editor, rows, cols);
+  }, [editor]);
+
+  const handleInsertRow = useCallback(() => {
+    insertRow(editor);
+  }, [editor]);
+
+  const handleInsertColumn = useCallback(() => {
+    insertColumn(editor);
+  }, [editor]);
+
+  const handleDeleteRow = useCallback(() => {
+    deleteRow(editor);
+  }, [editor]);
+
+  const handleDeleteColumn = useCallback(() => {
+    deleteColumn(editor);
+  }, [editor]);
+
+  const handleIsTableActive = useCallback(() => {
+    return isTableActive(editor);
+  }, [editor]);
+
   // Context value
   const value = {
     editor,
@@ -151,6 +263,14 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     setMetadata,
     insertImage: handleInsertImage,
     insertLink: handleInsertLink,
+    toggleFormat,
+    isFormatActive,
+    insertTable: (rows = 3, cols = 3) => insertTable(editor, rows, cols),
+    insertRow: () => insertRow(editor),
+    insertColumn: () => insertColumn(editor),
+    deleteRow: () => deleteRow(editor),
+    deleteColumn: () => deleteColumn(editor),
+    isTableActive: () => isTableActive(editor)
   };
 
   return (
@@ -168,5 +288,13 @@ export const useEditorContext = (): EditorContextValue => {
     throw new Error('useEditorContext must be used within an EditorProvider');
   }
   
+  return context;
+};
+
+export const useEditor = () => {
+  const context = useContext(EditorContext);
+  if (!context) {
+    throw new Error('useEditor must be used within an EditorProvider');
+  }
   return context;
 };
