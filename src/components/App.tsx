@@ -10,7 +10,7 @@ const App: React.FC = () => {
     <div className="app min-h-screen bg-gray-50">
       <header className="bg-white border-b shadow-sm py-4">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-2xl font-bold text-gray-800">MasonicEditor</h1>
+          <h1 className="text-2xl font-bold text-gray-800">ClearMark</h1>
           <p className="text-gray-500 text-sm">Distraction-free Markdown Editor</p>
         </div>
       </header>
@@ -22,7 +22,7 @@ const App: React.FC = () => {
       </main>
       
       <footer className="py-6 text-center text-gray-500 text-sm">
-        <p>MasonicEditor &copy; {new Date().getFullYear()} - Distraction-free Markdown Editor</p>
+        <p>ClearMark &copy; {new Date().getFullYear()} - Distraction-free Markdown Editor</p>
       </footer>
     </div>
   );
