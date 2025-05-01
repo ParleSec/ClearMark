@@ -1,16 +1,15 @@
 import React from 'react';
-import { useSlate } from 'slate-react';
 import { 
-  Bold, Italic, Code, Hash, List, Link as LinkIcon, 
-  Image as ImageIcon, AlignLeft, Download, Eye, EyeOff, 
-  Clipboard, Maximize, Minimize, AlignJustify
+  Bold, Italic, Code, Hash, List, ListOrdered, Quote, 
+  Link as LinkIcon, Image as ImageIcon, Download, Eye, 
+  EyeOff, Clipboard, Maximize, Minimize, Table, Plus, Minus
 } from 'lucide-react';
 
-import FormatButton from './FormatButton';
 import ToolbarButton from './ToolbarButton';
 import { useEditorContext } from '../../context/EditorContext';
 import { exportToMarkdownFile, copyMarkdownToClipboard } from '../../utils/exporters';
 import { MarkdownFormat, MarkdownElementType } from '../../types/markdown';
+import { TableToolbar } from './TableToolbar';
 
 interface ToolbarProps {
   onInsertImage: () => void;
@@ -18,7 +17,7 @@ interface ToolbarProps {
 }
 
 /**
- * Main editor toolbar component
+ * Type-corrected toolbar component
  */
 const Toolbar: React.FC<ToolbarProps> = ({ 
   onInsertImage, 
@@ -30,7 +29,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
     setShowMarkdown,
     focusMode,
     setFocusMode,
-    metadata
+    metadata,
+    toggleFormat,
+    isFormatActive,
+    insertTable,
+    insertRow,
+    insertColumn,
+    deleteRow,
+    deleteColumn,
+    isTableActive
   } = useEditorContext();
   
   // Handle exporting to markdown file
@@ -44,13 +51,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
     const success = await copyMarkdownToClipboard(editorState, metadata);
     
     if (success) {
-      // Show a success message
       alert('Markdown copied to clipboard!');
     } else {
-      // Show an error message
       alert('Failed to copy to clipboard. Please try again.');
     }
   };
+  
+  // Define IconProps type for custom icons
+  type IconProps = React.ComponentProps<typeof Bold>;
   
   return (
     <div className={`border-b p-2 flex justify-between items-center bg-white z-10 
@@ -59,41 +67,65 @@ const Toolbar: React.FC<ToolbarProps> = ({
       {/* Text formatting tools */}
       <div className="flex items-center space-x-1">
         <div className="flex">
-          <FormatButton format={MarkdownFormat.Bold} icon={Bold} />
-          <FormatButton format={MarkdownFormat.Italic} icon={Italic} />
-          <FormatButton format={MarkdownFormat.Code} icon={Code} />
+          <ToolbarButton 
+            icon={Bold} 
+            isActive={isFormatActive(MarkdownFormat.Bold)}
+            onClick={() => toggleFormat(MarkdownFormat.Bold)}
+            title="Bold"
+          />
+          <ToolbarButton 
+            icon={Italic} 
+            isActive={isFormatActive(MarkdownFormat.Italic)}
+            onClick={() => toggleFormat(MarkdownFormat.Italic)}
+            title="Italic"
+          />
+          <ToolbarButton 
+            icon={Code} 
+            isActive={isFormatActive(MarkdownFormat.Code)}
+            onClick={() => toggleFormat(MarkdownFormat.Code)}
+            title="Code"
+          />
         </div>
         
         <div className="h-full w-px bg-gray-300 mx-2" />
         
         {/* Block formatting */}
         <div className="flex">
-          <FormatButton 
-            format={MarkdownElementType.HeadingOne} 
+          <ToolbarButton 
             icon={Hash} 
-            isBlock={true} 
+            isActive={isFormatActive(MarkdownElementType.Heading1, true)}
+            onClick={() => toggleFormat(MarkdownElementType.Heading1, true)}
+            title="Heading 1"
           />
-          <FormatButton 
-            format={MarkdownElementType.HeadingTwo} 
-            icon={Hash} 
-            isBlock={true} 
-            small
+          <ToolbarButton 
+            icon={(props: IconProps) => <Hash {...props} size={16} />} 
+            isActive={isFormatActive(MarkdownElementType.Heading2, true)}
+            onClick={() => toggleFormat(MarkdownElementType.Heading2, true)}
+            title="Heading 2"
           />
-          <FormatButton 
-            format={MarkdownElementType.HeadingThree} 
-            icon={Hash} 
-            isBlock={true} 
-            smaller
+          <ToolbarButton 
+            icon={(props: IconProps) => <Hash {...props} size={14} />} 
+            isActive={isFormatActive(MarkdownElementType.Heading3, true)}
+            onClick={() => toggleFormat(MarkdownElementType.Heading3, true)}
+            title="Heading 3"
           />
-          <FormatButton 
-            format={MarkdownElementType.BlockQuote} 
-            icon={AlignLeft} 
-            isBlock={true} 
+          <ToolbarButton 
+            icon={Quote} 
+            isActive={isFormatActive(MarkdownElementType.BlockQuote, true)}
+            onClick={() => toggleFormat(MarkdownElementType.BlockQuote, true)}
+            title="Quote"
           />
-          <FormatButton 
-            format={MarkdownElementType.BulletedList} 
+          <ToolbarButton 
             icon={List} 
-            isBlock={true} 
+            isActive={isFormatActive(MarkdownElementType.BulletedList, true)}
+            onClick={() => toggleFormat(MarkdownElementType.BulletedList, true)}
+            title="Bullet List"
+          />
+          <ToolbarButton 
+            icon={ListOrdered} 
+            isActive={isFormatActive(MarkdownElementType.NumberedList, true)}
+            onClick={() => toggleFormat(MarkdownElementType.NumberedList, true)}
+            title="Numbered List"
           />
         </div>
         
@@ -111,6 +143,41 @@ const Toolbar: React.FC<ToolbarProps> = ({
             onClick={onInsertLink} 
             title="Insert Link" 
           />
+        </div>
+
+        <div className="h-full w-px bg-gray-300 mx-2" />
+        
+        {/* Table tools */}
+        <div className="flex">
+          <ToolbarButton
+            icon={Table}
+            onClick={() => insertTable()}
+            title="Insert Table"
+          />
+          {isTableActive() && (
+            <>
+              <ToolbarButton
+                icon={Plus}
+                onClick={insertRow}
+                title="Insert Row"
+              />
+              <ToolbarButton
+                icon={Plus}
+                onClick={insertColumn}
+                title="Insert Column"
+              />
+              <ToolbarButton
+                icon={Minus}
+                onClick={deleteRow}
+                title="Delete Row"
+              />
+              <ToolbarButton
+                icon={Minus}
+                onClick={deleteColumn}
+                title="Delete Column"
+              />
+            </>
+          )}
         </div>
       </div>
       

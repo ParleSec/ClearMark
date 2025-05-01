@@ -6,9 +6,11 @@ import {
     Element as SlateElement 
   } from 'slate';
   import { CustomEditor, CustomElement } from '../../../types/editor';
+  import { convertTextToHeading } from '../plugins/withHeadings';
+  import { convertTextToQuote } from '../plugins/withQuote';
   
   /**
-   * Plugin to add markdown-specific behavior to the editor
+   * Enhanced plugin to add markdown-specific behavior to the editor
    */
   export const withMarkdown = (editor: CustomEditor): CustomEditor => {
     const { insertText, deleteBackward } = editor;
@@ -19,133 +21,106 @@ import {
   
       // Only apply markdown transforms when we have a valid selection
       if (selection && Range.isCollapsed(selection)) {
+        // Check for special markdown syntax
+        
+        // Try to convert text to heading (# ## ###)
+        if (text === ' ' && convertTextToHeading(editor, text)) {
+          return;
+        }
+        
+        // Try to convert text to blockquote (>)
+        if (text === ' ' && convertTextToQuote(editor, text)) {
+          return;
+        }
+        
+        // Try to handle lists
         const { anchor } = selection;
         const block = SlateEditor.above(editor, {
           match: (n: any) => SlateEditor.isBlock(editor, n),
         });
         
-        const path = block ? block[1] : [];
-        const start = SlateEditor.start(editor, path);
-        const lineRange = { anchor, focus: start };
-        const lineText = SlateEditor.string(editor, lineRange);
-        
-        // Handle heading syntax (# followed by space)
-        if (text === ' ' && lineText === '#') {
-          Transforms.delete(editor, {
-            at: lineRange,
-          });
-          Transforms.setNodes(editor, { type: 'heading-one' } as Partial<CustomElement>, {
-            match: (n: any) => SlateEditor.isBlock(editor, n),
-          });
-          return;
-        }
-  
-        if (text === ' ' && lineText === '##') {
-          Transforms.delete(editor, {
-            at: lineRange,
-          });
-          Transforms.setNodes(editor, { type: 'heading-two' } as Partial<CustomElement>, {
-            match: (n: any) => SlateEditor.isBlock(editor, n),
-          });
-          return;
-        }
-  
-        if (text === ' ' && lineText === '###') {
-          Transforms.delete(editor, {
-            at: lineRange,
-          });
-          Transforms.setNodes(editor, { type: 'heading-three' } as Partial<CustomElement>, {
-            match: (n: any) => SlateEditor.isBlock(editor, n),
-          });
-          return;
-        }
-        
-        // Handle blockquote syntax (> followed by space)
-        if (text === ' ' && lineText === '>') {
-          Transforms.delete(editor, {
-            at: lineRange,
-          });
-          Transforms.setNodes(editor, { type: 'block-quote' } as Partial<CustomElement>, {
-            match: (n: any) => SlateEditor.isBlock(editor, n),
-          });
-          return;
-        }
-        
-        // Handle list syntax (- or * followed by space)
-        if (text === ' ' && (lineText === '-' || lineText === '*')) {
-          Transforms.delete(editor, {
-            at: lineRange,
-          });
-          Transforms.setNodes(editor, { type: 'list-item' } as Partial<CustomElement>, {
-            match: (n: any) => SlateEditor.isBlock(editor, n),
-          });
+        if (block) {
+          const [, path] = block;
+          const start = SlateEditor.start(editor, path);
+          const lineRange = { anchor, focus: start };
+          const lineText = SlateEditor.string(editor, lineRange);
           
-          // Check if we're in a list already or need to create a new one
-          const list = SlateEditor.above(editor, {
-            match: (n: any) => {
-              return !SlateEditor.isEditor(n) && 
-                     SlateElement.isElement(n) && 
-                     (n as CustomElement).type === 'bulleted-list';
-            },
-          });
-          
-          // If not already in a list, wrap in list
-          if (!list) {
-            Transforms.wrapNodes(editor, { 
-              type: 'bulleted-list', 
-              children: [] 
-            } as CustomElement);
-          }
-          return;
-        }
-        
-        // Handle numbered list (1. followed by space)
-        if (text === ' ' && /^\d+\.$/.test(lineText)) {
-          Transforms.delete(editor, {
-            at: lineRange,
-          });
-          Transforms.setNodes(editor, { type: 'list-item' } as Partial<CustomElement>, {
-            match: (n: any) => SlateEditor.isBlock(editor, n),
-          });
-          
-          // Check if we're in a list already or need to create a new one
-          const list = SlateEditor.above(editor, {
-            match: (n: any) => {
-              return !SlateEditor.isEditor(n) && 
-                     SlateElement.isElement(n) && 
-                     (n as CustomElement).type === 'numbered-list';
-            },
-          });
-          
-          // If not already in a list, wrap in list
-          if (!list) {
-            Transforms.wrapNodes(editor, { 
-              type: 'numbered-list', 
-              children: [] 
-            } as CustomElement);
-          }
-          return;
-        }
-        
-        // Handle code block (``` followed by any character or Enter)
-        if ((text === '`' && lineText === '``') || (text === '\n' && lineText === '```')) {
-          if (text === '`') {
-            // First delete the existing backticks
+          // Handle list syntax (- or * followed by space)
+          if (text === ' ' && (lineText === '-' || lineText === '*')) {
             Transforms.delete(editor, {
               at: lineRange,
             });
+            Transforms.setNodes(editor, { type: 'list-item' } as Partial<CustomElement>, {
+              match: (n: any) => SlateEditor.isBlock(editor, n),
+            });
+            
+            // Check if we're in a list already or need to create a new one
+            const list = SlateEditor.above(editor, {
+              match: (n: any) => {
+                return !SlateEditor.isEditor(n) && 
+                       SlateElement.isElement(n) && 
+                       (n as CustomElement).type === 'bulleted-list';
+              },
+            });
+            
+            // If not already in a list, wrap in list
+            if (!list) {
+              Transforms.wrapNodes(editor, { 
+                type: 'bulleted-list', 
+                children: [] 
+              } as CustomElement);
+            }
+            return;
           }
           
-          // Insert code block
-          Transforms.setNodes(editor, { type: 'code-block' } as Partial<CustomElement>, {
-            match: (n: any) => SlateEditor.isBlock(editor, n),
-          });
-          
-          if (text === '\n') {
-            // Insert a new line
-            insertText('\n');
+          // Handle numbered list (1. followed by space)
+          if (text === ' ' && /^\d+\.$/.test(lineText)) {
+            Transforms.delete(editor, {
+              at: lineRange,
+            });
+            Transforms.setNodes(editor, { type: 'list-item' } as Partial<CustomElement>, {
+              match: (n: any) => SlateEditor.isBlock(editor, n),
+            });
+            
+            // Check if we're in a list already or need to create a new one
+            const list = SlateEditor.above(editor, {
+              match: (n: any) => {
+                return !SlateEditor.isEditor(n) && 
+                       SlateElement.isElement(n) && 
+                       (n as CustomElement).type === 'numbered-list';
+              },
+            });
+            
+            // If not already in a list, wrap in list
+            if (!list) {
+              Transforms.wrapNodes(editor, { 
+                type: 'numbered-list', 
+                children: [] 
+              } as CustomElement);
+            }
+            return;
           }
-          return;
+          
+          // Handle code block (``` followed by any character or Enter)
+          if ((text === '`' && lineText === '``') || (text === '\n' && lineText === '```')) {
+            if (text === '`') {
+              // First delete the existing backticks
+              Transforms.delete(editor, {
+                at: lineRange,
+              });
+            }
+            
+            // Insert code block
+            Transforms.setNodes(editor, { type: 'code-block' } as Partial<CustomElement>, {
+              match: (n: any) => SlateEditor.isBlock(editor, n),
+            });
+            
+            if (text === '\n') {
+              // Insert a new line
+              insertText('\n');
+            }
+            return;
+          }
         }
       }
   

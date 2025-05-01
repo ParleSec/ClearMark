@@ -3,14 +3,10 @@ import { Eye, EyeOff } from 'lucide-react';
 import ToolbarButton from './ToolbarButton';
 import { useEditorContext } from '../../context/EditorContext';
 
-interface MarkdownButtonProps {
-  className?: string;
-}
-
 /**
- * Button to toggle markdown preview
+ * Button to toggle markdown preview (with fixed props)
  */
-const MarkdownButton: React.FC<MarkdownButtonProps> = ({ className }) => {
+const MarkdownButton: React.FC = () => {
   const { showMarkdown, setShowMarkdown } = useEditorContext();
   
   const handleToggleMarkdown = () => {

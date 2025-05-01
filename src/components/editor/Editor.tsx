@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { Slate, Editable } from 'slate-react';
 
 import { useEditorContext } from '../../context/EditorContext';
@@ -8,9 +8,11 @@ import Toolbar from '../toolbar/Toolbar';
 import StatusBar from '../ui/StatusBar';
 import MarkdownPreview from '../ui/MarkdownPreview';
 import Modal from '../ui/Modal';
+import FloatingToolbar from '../toolbar/FloatingToolbar';
+import KeyboardShortcuts from '../toolbar/KeyboardShortcuts';
 
 /**
- * Main Editor component that ties everything together
+ * Main Editor component with properly structured keyboard shortcuts
  */
 const Editor: React.FC = () => {
   const {
@@ -78,18 +80,24 @@ const Editor: React.FC = () => {
           onInsertLink={handleInsertLink} 
         />
         
-        {/* Main editor area */}
+        {/* Floating toolbar for selected text */}
+        <FloatingToolbar />
+        
+        {/* Main editor area with keyboard shortcuts */}
         <div className="flex flex-1 h-full">
           <div className={`transition-all duration-300 ${showMarkdown ? 'w-1/2' : 'w-full'}`}>
             <div className={`max-w-3xl mx-auto px-8 py-6 ${focusMode ? 'mt-12' : ''}`}>
-              <Editable
-                renderElement={renderElement}
-                renderLeaf={renderLeaf}
-                placeholder="Start writing your blog post here..."
-                spellCheck={true}
-                autoFocus={true}
-                className="outline-none min-h-screen prose prose-lg"
-              />
+              {/* Use KeyboardShortcuts to safely add keyboard shortcuts within the Slate context */}
+              <KeyboardShortcuts>
+                <Editable
+                  renderElement={renderElement}
+                  renderLeaf={renderLeaf}
+                  placeholder="Start writing your blog post here..."
+                  spellCheck={true}
+                  autoFocus={true}
+                  className="outline-none min-h-screen prose prose-lg"
+                />
+              </KeyboardShortcuts>
             </div>
           </div>
           
