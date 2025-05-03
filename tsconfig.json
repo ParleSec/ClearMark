@@ -19,8 +19,9 @@
       "noUnusedLocals": true,
       "noUnusedParameters": true,
       "noFallthroughCasesInSwitch": true,
-      "forceConsistentCasingInFileNames": true
+      "forceConsistentCasingInFileNames": true,
+      "types": ["node", "electron"]
     },
-    "include": ["src", "vite.config.ts"],
+    "include": ["src", "src-electron"],
     "references": [{ "path": "./tsconfig.node.json" }]
   }
