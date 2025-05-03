@@ -1,4 +1,4 @@
-import { Editor, Element as SlateElement, Transforms } from 'slate';
+import { Editor, Element, Transforms } from 'slate';
 import { CustomEditor, CustomElement } from '../../../types/editor';
 import { MarkdownElementType } from '../../../types/markdown';
 
@@ -6,30 +6,28 @@ import { MarkdownElementType } from '../../../types/markdown';
  * Plugin to enhance heading behavior in the editor
  */
 export const withHeadings = (editor: CustomEditor): CustomEditor => {
-  const { normalizeNode } = editor;
+  const { isInline, isVoid, normalizeNode } = editor;
+
+  editor.isInline = (element) => {
+    return element.type === 'link' ? true : isInline(element);
+  };
+
+  editor.isVoid = (element) => {
+    return element.type === 'image' ? true : isVoid(element);
+  };
 
   // Enhance node normalization for headings
-  editor.normalizeNode = entry => {
-    const [node, path] = entry;
-
-    // Handle heading nodes to ensure they have proper structure
-    if (SlateElement.isElement(node) && 
-        ((node as any).type === MarkdownElementType.HeadingOne ||
-         (node as any).type === MarkdownElementType.HeadingTwo ||
-         (node as any).type === MarkdownElementType.HeadingThree)) {
-      
-      // Ensure headings have at least one text child
+  editor.normalizeNode = ([node, path]) => {
+    if (Element.isElement(node) && 
+        ((node as any).type === MarkdownElementType.Heading1 ||
+         (node as any).type === MarkdownElementType.Heading2 ||
+         (node as any).type === MarkdownElementType.Heading3)) {
       if (node.children.length === 0) {
-        Transforms.insertNodes(
-          editor,
-          { text: '' },
-          { at: [...path, 0] }
-        );
+        Transforms.insertNodes(editor, { text: '' }, { at: path });
+        return;
       }
     }
-
-    // Call the original normalizeNode to handle other cases
-    normalizeNode(entry);
+    normalizeNode([node, path]);
   };
 
   return editor;
@@ -38,33 +36,40 @@ export const withHeadings = (editor: CustomEditor): CustomEditor => {
 /**
  * Toggle heading format
  */
-export const toggleHeading = (
-  editor: CustomEditor, 
-  level: 1 | 2 | 3
-): void => {
-  let headingType: MarkdownElementType;
-  
+export const toggleHeading = (editor: CustomEditor, level: number): void => {
+  const [match] = Editor.nodes(editor, {
+    match: n => Element.isElement(n) && 
+      ((n as any).type === MarkdownElementType.Heading1 ||
+       (n as any).type === MarkdownElementType.Heading2 ||
+       (n as any).type === MarkdownElementType.Heading3),
+  });
+
+  let headingType = MarkdownElementType.Paragraph;
+
   switch (level) {
     case 1:
-      headingType = MarkdownElementType.HeadingOne;
+      headingType = MarkdownElementType.Heading1;
       break;
     case 2:
-      headingType = MarkdownElementType.HeadingTwo;
+      headingType = MarkdownElementType.Heading2;
       break;
     case 3:
-      headingType = MarkdownElementType.HeadingThree;
+      headingType = MarkdownElementType.Heading3;
       break;
     default:
-      headingType = MarkdownElementType.HeadingOne;
+      headingType = MarkdownElementType.Heading1;
   }
-  
-  const isActive = isHeadingActive(editor, headingType);
-  
-  Transforms.setNodes(
-    editor,
-    { type: isActive ? 'paragraph' : headingType } as Partial<CustomElement>,
-    { match: n => Editor.isBlock(editor, n as any) }
-  );
+
+  if (match) {
+    Transforms.unwrapNodes(editor, {
+      match: n => Element.isElement(n) && 
+        ((n as any).type === MarkdownElementType.Heading1 ||
+         (n as any).type === MarkdownElementType.Heading2 ||
+         (n as any).type === MarkdownElementType.Heading3),
+    });
+  } else {
+    Transforms.setNodes(editor, { type: headingType } as Partial<CustomElement>);
+  }
 };
 
 /**
@@ -75,7 +80,7 @@ export const isHeadingActive = (
   headingType: MarkdownElementType
 ): boolean => {
   const [match] = Editor.nodes(editor, {
-    match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && (n as any).type === headingType,
+    match: n => !Editor.isEditor(n) && Element.isElement(n) && (n as any).type === headingType,
   });
   
   return !!match;

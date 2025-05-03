@@ -2,6 +2,10 @@
     "name": "clearmark",
     "private": true,
     "version": "0.1.0",
+    "description": "A beautiful and modern markdown editor",
+    "author": {
+        "name": "ClearMark Team"
+    },
     "type": "commonjs",
     "main": "electron.cjs",
     "scripts": {
@@ -10,7 +14,7 @@
         "preview": "vite preview",
         "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "electron:dev": "vite build && electron .",
-        "electron:build": "tsc && vite build && electron-builder",
+        "electron:build": "vite build && electron-builder",
         "electron:preview": "vite preview"
     },
     "dependencies": {
@@ -56,7 +60,38 @@
             "electron.cjs"
         ],
         "win": {
-            "target": "nsis"
+            "target": [
+                {
+                    "target": "portable",
+                    "arch": ["x64"]
+                }
+            ],
+            "icon": "public/icon.ico"
+        },
+        "mac": {
+            "target": [
+                {
+                    "target": "dmg",
+                    "arch": ["x64", "arm64"]
+                }
+            ],
+            "category": "public.app-category.productivity"
+        },
+        "linux": {
+            "target": [
+                {
+                    "target": "AppImage",
+                    "arch": ["x64"]
+                },
+                {
+                    "target": "deb",
+                    "arch": ["x64"]
+                }
+            ],
+            "category": "Office"
+        },
+        "portable": {
+            "artifactName": "ClearMark.exe"
         }
     }
 }
