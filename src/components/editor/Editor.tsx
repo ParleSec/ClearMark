@@ -23,6 +23,7 @@ const Editor: React.FC = () => {
     focusMode,
     insertImage,
     insertLink,
+    setFocusMode,
   } = useEditorContext();
   
   // Modal state for insert dialogs
@@ -74,39 +75,54 @@ const Editor: React.FC = () => {
         initialValue={editorState}
         onChange={value => setEditorState(value)}
       >
-        {/* Top toolbar */}
-        <Toolbar 
-          onInsertImage={handleInsertImage} 
-          onInsertLink={handleInsertLink} 
-        />
+        {/* Top toolbar - visible on hover in focus mode */}
+        <div className={focusMode ? 'toolbar' : ''}>
+          <Toolbar 
+            onInsertImage={handleInsertImage} 
+            onInsertLink={handleInsertLink} 
+          />
+        </div>
         
-        {/* Floating toolbar for selected text */}
-        <FloatingToolbar />
+        {/* Exit focus mode button */}
+        {focusMode && (
+          <button
+            onClick={() => setFocusMode(false)}
+            className="focus-mode-exit"
+            title="Exit focus mode"
+          >
+            Exit Focus Mode
+          </button>
+        )}
+        
+        {/* Floating toolbar - completely hidden in focus mode */}
+        {!focusMode && <FloatingToolbar />}
         
         {/* Main editor area with keyboard shortcuts */}
-        <div className="flex flex-1 h-full">
-          <div className={`transition-all duration-300 ${showMarkdown ? 'w-1/2' : 'w-full'}`}>
+        <div className={`flex flex-1 h-full ${focusMode ? 'main-content' : ''}`}>
+          <div className={`transition-all duration-300 ${showMarkdown && !focusMode ? 'w-1/2' : 'w-full'}`}>
             <div className={`max-w-3xl mx-auto px-8 py-6 ${focusMode ? 'mt-12' : ''}`}>
               {/* Use KeyboardShortcuts to safely add keyboard shortcuts within the Slate context */}
               <KeyboardShortcuts>
                 <Editable
                   renderElement={renderElement}
                   renderLeaf={renderLeaf}
-                  placeholder="Start writing your blog post here..."
+                  placeholder={focusMode ? "Write your thoughts..." : "Start writing your blog post here..."}
                   spellCheck={true}
                   autoFocus={true}
-                  className="outline-none min-h-screen prose prose-lg"
+                  className={`outline-none min-h-screen prose prose-lg ${
+                    focusMode ? 'focus-mode-editor' : ''
+                  }`}
                 />
               </KeyboardShortcuts>
             </div>
           </div>
           
-          {/* Markdown preview pane */}
-          {showMarkdown && <MarkdownPreview />}
+          {/* Markdown preview pane - completely hidden in focus mode */}
+          {showMarkdown && !focusMode && <MarkdownPreview />}
         </div>
         
-        {/* Status bar */}
-        <StatusBar />
+        {/* Status bar - completely hidden in focus mode */}
+        {!focusMode && <StatusBar />}
       </Slate>
       
       {/* Image insertion modal */}

@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Maximize, Minimize } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Maximize, Minimize, Timer, Volume2, VolumeX } from 'lucide-react';
 import { useEditorContext } from '../../context/EditorContext';
 
 interface FocusModeProps {
@@ -11,6 +11,10 @@ interface FocusModeProps {
  */
 const FocusMode: React.FC<FocusModeProps> = ({ children }) => {
   const { focusMode, setFocusMode } = useEditorContext();
+  const [isMuted, setIsMuted] = useState(false);
+  const [focusTime, setFocusTime] = useState(0);
+  const [showTimer, setShowTimer] = useState(false);
+  const [showControls, setShowControls] = useState(false);
   
   // Handle escape key to exit focus mode
   useEffect(() => {
@@ -31,34 +35,97 @@ const FocusMode: React.FC<FocusModeProps> = ({ children }) => {
   useEffect(() => {
     if (focusMode) {
       document.body.classList.add('focus-mode');
+      // Start focus timer
+      const timer = setInterval(() => {
+        setFocusTime(prev => prev + 1);
+      }, 1000);
+      
+      return () => {
+        clearInterval(timer);
+        document.body.classList.remove('focus-mode');
+      };
     } else {
       document.body.classList.remove('focus-mode');
+      setFocusTime(0);
     }
-    
-    return () => {
-      document.body.classList.remove('focus-mode');
-    };
   }, [focusMode]);
+  
+  // Format focus time
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
   
   // Toggle focus mode
   const toggleFocusMode = () => {
     setFocusMode(!focusMode);
   };
   
+  // Toggle sound
+  const toggleSound = () => {
+    setIsMuted(!isMuted);
+    // You can add ambient sound here if desired
+  };
+  
   return (
-    <div className={`focus-mode-container ${focusMode ? 'is-focused' : ''}`}>
+    <div 
+      className={`focus-mode-container ${focusMode ? 'is-focused' : ''}`}
+      onMouseMove={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
+    >
       {children}
       
-      <button
-        onClick={toggleFocusMode}
-        className="focus-mode-toggle fixed bottom-4 right-4 bg-white dark:bg-gray-800 p-2 rounded-full shadow-md hover:shadow-lg transition-shadow text-gray-700 dark:text-gray-200 z-50"
-        title={focusMode ? "Exit focus mode" : "Enter focus mode"}
-      >
-        {focusMode ? <Minimize size={20} /> : <Maximize size={20} />}
-      </button>
-      
       {focusMode && (
-        <div className="focus-mode-overlay fixed inset-0 bg-black bg-opacity-50 z-40 pointer-events-none" />
+        <>
+          <div className="focus-mode-overlay" />
+          
+          {/* Focus mode controls */}
+          <div className={`fixed bottom-4 right-4 flex items-center space-x-4 z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+            {showTimer && (
+              <div className="bg-white/90 px-4 py-2 rounded-full shadow-sm text-sm text-gray-700 border border-gray-200">
+                <Timer size={16} className="inline-block mr-2" />
+                {formatTime(focusTime)}
+              </div>
+            )}
+            
+            <button
+              onClick={toggleSound}
+              className="focus-mode-toggle"
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </button>
+            
+            <button
+              onClick={() => setShowTimer(!showTimer)}
+              className="focus-mode-toggle"
+              title={showTimer ? "Hide timer" : "Show timer"}
+            >
+              <Timer size={20} />
+            </button>
+            
+            <button
+              onClick={toggleFocusMode}
+              className="focus-mode-toggle"
+              title="Exit focus mode"
+            >
+              <Minimize size={20} />
+            </button>
+          </div>
+        </>
+      )}
+      
+      {!focusMode && (
+        <button
+          onClick={toggleFocusMode}
+          className="focus-mode-toggle"
+          title="Enter focus mode"
+        >
+          <Maximize size={20} />
+        </button>
       )}
     </div>
   );
