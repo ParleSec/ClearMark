@@ -1,63 +1,63 @@
 # flyctl launch added from .gitignore
 # Node modules
-**\node_modules
+**/node_modules
 
 # Build output
-**\dist
-**\build
-**\out
-**\dist-electron
-**\release
+**/dist
+**/build
+**/out
+**/dist-electron
+**/release
 
 # Logs
-**\npm-debug.log*
-**\yarn-debug.log*
-**\yarn-error.log*
-**\pnpm-debug.log*
-**\lerna-debug.log*
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
 
 # OS files
-**\.DS_Store
-**\Thumbs.db
-**\desktop.ini
+**/.DS_Store
+**/Thumbs.db
+**/desktop.ini
 
 # IDE files
-**\.vscode
-**\.idea
-**\*.swp
-**\*.swo
-**\*.swn
-**\*.bak
-**\*.tmp
-**\.history
+**/.vscode
+**/.idea
+**/*.swp
+**/*.swo
+**/*.swn
+**/*.bak
+**/*.tmp
+**/.history
 
 # Environment files
-**\.env
-**\.env.*
-!**\.env.example
+**/.env
+**/.env.*
+!**/.env.example
 
 # TypeScript cache
-**\*.tsbuildinfo
-**\.tscache
+**/*.tsbuildinfo
+**/.tscache
 
 # Coverage reports
-**\coverage
-**\.nyc_output
+**/coverage
+**/.nyc_output
 
 # Electron
-**\electron-builder.yml
-**\electron-builder.json
+**/electron-builder.yml
+**/electron-builder.json
 
 # Cache directories
-**\.cache
-**\.npm
-**\.eslintcache
-**\.stylelintcache
+**/.cache
+**/.npm
+**/.eslintcache
+**/.stylelintcache
 
 # Misc
-**\*.log
-**\*.pid
-**\*.seed
-**\*.pid.lock
+**/*.log
+**/*.pid
+**/*.seed
+**/*.pid.lock
 
 fly.toml
