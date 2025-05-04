@@ -8,6 +8,7 @@ import {
   import { CustomEditor, CustomElement } from '../../../types/editor';
   import { convertTextToHeading } from '../plugins/withHeadings';
   import { convertTextToQuote } from '../plugins/withQuote';
+  import { MarkdownElementType } from '../../../types/markdown';
   
   /**
    * Enhanced plugin to add markdown-specific behavior to the editor
@@ -50,7 +51,7 @@ import {
             Transforms.delete(editor, {
               at: lineRange,
             });
-            Transforms.setNodes(editor, { type: 'list-item' } as Partial<CustomElement>, {
+            Transforms.setNodes(editor, { type: MarkdownElementType.ListItem } as Partial<CustomElement>, {
               match: (n: any) => SlateEditor.isBlock(editor, n),
             });
             
@@ -59,42 +60,42 @@ import {
               match: (n: any) => {
                 return !SlateEditor.isEditor(n) && 
                        SlateElement.isElement(n) && 
-                       (n as CustomElement).type === 'bulleted-list';
+                       (n as CustomElement).type === MarkdownElementType.BulletedList;
               },
             });
             
             // If not already in a list, wrap in list
             if (!list) {
               Transforms.wrapNodes(editor, { 
-                type: 'bulleted-list', 
+                type: MarkdownElementType.BulletedList, 
                 children: [] 
               } as CustomElement);
             }
             return;
           }
           
-          // Handle numbered list (1. followed by space)
-          if (text === ' ' && /^\d+\.$/.test(lineText)) {
+          // Handle numbered list syntax (1. followed by space)
+          if (text === ' ' && lineText === '1.') {
             Transforms.delete(editor, {
               at: lineRange,
             });
-            Transforms.setNodes(editor, { type: 'list-item' } as Partial<CustomElement>, {
+            Transforms.setNodes(editor, { type: MarkdownElementType.ListItem } as Partial<CustomElement>, {
               match: (n: any) => SlateEditor.isBlock(editor, n),
             });
             
-            // Check if we're in a list already or need to create a new one
+            // Check if we're in a numbered list already
             const list = SlateEditor.above(editor, {
               match: (n: any) => {
                 return !SlateEditor.isEditor(n) && 
                        SlateElement.isElement(n) && 
-                       (n as CustomElement).type === 'numbered-list';
+                       (n as CustomElement).type === MarkdownElementType.NumberedList;
               },
             });
             
-            // If not already in a list, wrap in list
+            // If not already in a numbered list, wrap in one
             if (!list) {
               Transforms.wrapNodes(editor, { 
-                type: 'numbered-list', 
+                type: MarkdownElementType.NumberedList, 
                 children: [] 
               } as CustomElement);
             }
@@ -111,9 +112,11 @@ import {
             }
             
             // Insert code block
-            Transforms.setNodes(editor, { type: 'code-block' } as Partial<CustomElement>, {
-              match: (n: any) => SlateEditor.isBlock(editor, n),
-            });
+            Transforms.setNodes(
+              editor,
+              { type: MarkdownElementType.CodeBlock } as unknown as Partial<CustomElement>,
+              { match: (n: any) => SlateEditor.isBlock(editor, n) }
+            );
             
             if (text === '\n') {
               // Insert a new line

@@ -146,10 +146,11 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
 
   const toggleFormat = useCallback((format: MarkdownFormat | MarkdownElementType, isBlock = false): void => {
     if (isBlock) {
-      const isActive = isFormatActive(format, true);
-      
       // Special handling for lists
       if (format === MarkdownElementType.BulletedList || format === MarkdownElementType.NumberedList) {
+        // Check if we're toggling the same list type that's currently active
+        const sameListTypeActive = isFormatActive(format, true);
+        
         // Unwrap any existing lists first
         Transforms.unwrapNodes(editor, {
           match: n => 
@@ -159,20 +160,28 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
           split: true,
         });
         
-        // If turning on list, convert paragraphs to list-items and wrap in list
-        if (!isActive) {
+        // If turning on list or switching list type, convert to list items and wrap in list
+        if (!sameListTypeActive) {
           Transforms.setNodes(editor, { 
-            type: 'list-item' as const
-          });
+            type: MarkdownElementType.ListItem
+          } as Partial<CustomElement>);
+          
           Transforms.wrapNodes(editor, { 
-            type: format as MarkdownElementType,
+            type: format,
             children: [] 
           } as CustomElement);
+        } else {
+          // If turning off list, convert list items to paragraphs
+          Transforms.setNodes(editor, { 
+            type: 'paragraph' 
+          } as Partial<CustomElement>, {
+            match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && (n as any).type === MarkdownElementType.ListItem
+          });
         }
       } else {
         // For other block elements (headings, blockquotes)
         Transforms.setNodes(editor, {
-          type: isActive ? 'paragraph' : format as MarkdownElementType
+          type: isFormatActive(format, true) ? 'paragraph' : format as MarkdownElementType
         } as Partial<CustomElement>);
       }
     } else {

@@ -15,7 +15,7 @@ export const withLists = (editor: CustomEditor): CustomEditor => {
     if (selection && selection.anchor.offset === 0) {
       const [match] = Editor.nodes(editor, {
         match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && 
-                   ((n as any).type === 'list-item'),
+                   ((n as any).type === MarkdownElementType.ListItem),
       });
       
       if (match) {
@@ -25,14 +25,14 @@ export const withLists = (editor: CustomEditor): CustomEditor => {
           // If at start of list item, unwrap it from the list
           Transforms.unwrapNodes(editor, {
             match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && 
-                      ((n as any).type === 'bulleted-list' || (n as any).type === 'numbered-list'),
+                      ((n as any).type === MarkdownElementType.BulletedList || (n as any).type === MarkdownElementType.NumberedList),
             split: true,
           });
           
           // Convert list item to paragraph
           Transforms.setNodes(editor, 
             { type: 'paragraph' } as Partial<CustomElement>,
-            { match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && (n as any).type === 'list-item' }
+            { match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && (n as any).type === MarkdownElementType.ListItem }
           );
           
           return;
@@ -49,15 +49,15 @@ export const withLists = (editor: CustomEditor): CustomEditor => {
     const [node, path] = entry;
     
     if (SlateElement.isElement(node) && 
-        ((node as any).type === 'bulleted-list' || (node as any).type === 'numbered-list')) {
+        ((node as any).type === MarkdownElementType.BulletedList || (node as any).type === MarkdownElementType.NumberedList)) {
       
       // Ensure list has only list-item children
       for (const [childNode, childPath] of Node.children(editor, path)) {
-        if (SlateElement.isElement(childNode) && (childNode as any).type !== 'list-item') {
+        if (SlateElement.isElement(childNode) && (childNode as any).type !== MarkdownElementType.ListItem) {
           // Convert non-list-item children to list-items
           Transforms.setNodes(
             editor,
-            { type: 'list-item' } as Partial<CustomElement>,
+            { type: MarkdownElementType.ListItem } as Partial<CustomElement>,
             { at: childPath }
           );
         }
@@ -92,7 +92,7 @@ export const toggleList = (
   // If turning on list, convert paragraphs/list-items to list-items and wrap in list
   if (!isList) {
     Transforms.setNodes(editor, { 
-      type: 'list-item' 
+      type: MarkdownElementType.ListItem 
     } as Partial<CustomElement>);
     
     Transforms.wrapNodes(editor, { 
@@ -104,7 +104,7 @@ export const toggleList = (
     Transforms.setNodes(editor, { 
       type: 'paragraph' 
     } as Partial<CustomElement>, {
-      match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && (n as any).type === 'list-item' 
+      match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && (n as any).type === MarkdownElementType.ListItem 
     });
   }
 };

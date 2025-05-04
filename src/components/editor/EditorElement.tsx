@@ -52,21 +52,21 @@ export const EditorElement: React.FC<RenderElementProps> = ({
         </blockquote>
       );
     
-    case 'bulleted-list':
+    case MarkdownElementType.BulletedList:
       return (
         <ul style={style} className="list-disc ml-6 my-2 text-gray-800" {...attributes}>
           {children}
         </ul>
       );
     
-    case 'numbered-list':
+    case MarkdownElementType.NumberedList:
       return (
         <ol style={style} className="list-decimal ml-6 my-2 text-gray-800" {...attributes}>
           {children}
         </ol>
       );
     
-    case 'list-item':
+    case MarkdownElementType.ListItem:
       return (
         <li style={style} className="my-1" {...attributes}>
           {children}

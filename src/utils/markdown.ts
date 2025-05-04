@@ -51,35 +51,35 @@ const serializeNode = (node: Node, options: SerializeOptions): string => {
  * Map of element types to markdown conversion functions
  */
 const elementToMarkdown: ElementToMarkdown = {
-  paragraph: (_, children) => children,
+  [MarkdownElementType.Paragraph]: (_, children) => children,
   
-  'heading-one': (_, children) => `# ${children}`,
+  [MarkdownElementType.Heading1]: (_, children) => `# ${children}`,
   
-  'heading-two': (_, children) => `## ${children}`,
+  [MarkdownElementType.Heading2]: (_, children) => `## ${children}`,
   
-  'heading-three': (_, children) => `### ${children}`,
+  [MarkdownElementType.Heading3]: (_, children) => `### ${children}`,
   
-  'block-quote': (_, children) => `> ${children}`,
+  [MarkdownElementType.BlockQuote]: (_, children) => `> ${children}`,
   
-  'bulleted-list': (node, _) => 
+  [MarkdownElementType.BulletedList]: (node, _) => 
     node.children
       .map((item: any) => `- ${serializeNode(item, { includeFormatting: true })}`)
       .join('\n'),
   
-  'numbered-list': (node, _) => 
+  [MarkdownElementType.NumberedList]: (node, _) => 
     node.children
       .map((item: any, i: number) => `${i + 1}. ${serializeNode(item, { includeFormatting: true })}`)
       .join('\n'),
   
-  'list-item': (_, children) => children,
+  [MarkdownElementType.ListItem]: (_, children) => children,
   
-  'code-block': (_, children) => `\`\`\`\n${children}\n\`\`\``,
+  [MarkdownElementType.CodeBlock]: (_, children) => `\`\`\`\n${children}\n\`\`\``,
   
-  'image': (node) => `![${node.alt || ''}](${node.url})`,
+  [MarkdownElementType.Image]: (node) => `![${node.alt || ''}](${node.url})`,
   
-  'link': (node, children) => `[${children}](${node.url})`,
+  [MarkdownElementType.Link]: (node, children) => `[${children}](${node.url})`,
 
-  'diagram': (node) => `\`\`\`${node.diagramType}\n${node.code}\n\`\`\``,
+  [MarkdownElementType.Diagram]: (node) => `\`\`\`${node.diagramType}\n${node.code}\n\`\`\``,
 
   'table': (node: CustomElement, _) => {
     // Instead of relying on children string, directly process the table structure
