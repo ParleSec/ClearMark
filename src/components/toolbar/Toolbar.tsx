@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Bold, Italic, Code, Hash, List, ListOrdered, Quote, 
   Link as LinkIcon, Image as ImageIcon, Download, Eye, 
-  EyeOff, Clipboard, Maximize, Minimize, Table, Plus, Minus
+  EyeOff, Clipboard, Maximize, Minimize, Table, Plus, Minus,
+  Menu, X
 } from 'lucide-react';
 
 import ToolbarButton from './ToolbarButton';
@@ -24,6 +25,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onInsertImage, 
   onInsertLink 
 }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const {
     editorState,
     showMarkdown,
@@ -62,12 +65,39 @@ const Toolbar: React.FC<ToolbarProps> = ({
   type IconProps = React.ComponentProps<typeof Bold>;
   
   return (
-    <div className={`border-b p-2 flex justify-between items-center bg-white z-10 
+    <div className={`border-b p-2 bg-white z-10 
       ${focusMode ? 'opacity-0 hover:opacity-100 transition-opacity' : ''}`}
     >
-      {/* Text formatting tools */}
-      <div className="flex items-center space-x-1">
-        <div className="flex">
+      {/* Mobile menu toggle */}
+      <div className="flex md:hidden justify-between items-center">
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          <span className="sr-only">{mobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
+        </button>
+        
+        {/* Always visible mobile actions */}
+        <div className="flex items-center">
+          <ToolbarButton
+            icon={showMarkdown ? EyeOff : Eye}
+            onClick={() => setShowMarkdown(!showMarkdown)}
+            title={showMarkdown ? "Hide Markdown" : "Show Markdown"}
+          />
+          <ToolbarButton
+            icon={focusMode ? Minimize : Maximize}
+            onClick={() => setFocusMode(!focusMode)}
+            title={focusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+          />
+        </div>
+      </div>
+      
+      {/* Collapsible mobile menu */}
+      <div className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'} py-2 space-y-3`}>
+        {/* Mobile text formatting tools */}
+        <div className="flex flex-wrap items-center gap-1 border-b pb-2">
           <ToolbarButton 
             icon={Bold} 
             isActive={isFormatActive(MarkdownFormat.Bold)}
@@ -88,10 +118,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
           />
         </div>
         
-        <div className="h-full w-px bg-gray-300 mx-2" />
-        
-        {/* Block formatting */}
-        <div className="flex">
+        {/* Mobile block formatting */}
+        <div className="flex flex-wrap items-center gap-1 border-b pb-2">
           <ToolbarButton 
             icon={Hash} 
             isActive={isFormatActive(MarkdownElementType.Heading1, true)}
@@ -130,10 +158,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
           />
         </div>
         
-        <div className="h-full w-px bg-gray-300 mx-2" />
-        
-        {/* Insert elements */}
-        <div className="flex">
+        {/* Mobile insert elements */}
+        <div className="flex flex-wrap items-center gap-1 border-b pb-2">
           <ToolbarButton 
             icon={ImageIcon} 
             onClick={onInsertImage} 
@@ -145,66 +171,171 @@ const Toolbar: React.FC<ToolbarProps> = ({
             title="Insert Link" 
           />
           <DiagramButton />
-        </div>
-
-        <div className="h-full w-px bg-gray-300 mx-2" />
-        
-        {/* Table tools */}
-        <div className="flex">
           <ToolbarButton
             icon={Table}
             onClick={() => insertTable()}
             title="Insert Table"
           />
-          {isTableActive() && (
-            <>
-              <ToolbarButton
-                icon={Plus}
-                onClick={insertRow}
-                title="Insert Row"
-              />
-              <ToolbarButton
-                icon={Plus}
-                onClick={insertColumn}
-                title="Insert Column"
-              />
-              <ToolbarButton
-                icon={Minus}
-                onClick={deleteRow}
-                title="Delete Row"
-              />
-              <ToolbarButton
-                icon={Minus}
-                onClick={deleteColumn}
-                title="Delete Column"
-              />
-            </>
-          )}
+        </div>
+        
+        {/* Mobile actions and view options */}
+        <div className="flex flex-wrap items-center gap-1">
+          <ToolbarButton
+            icon={Clipboard}
+            onClick={handleCopyMarkdown}
+            title="Copy Markdown"
+          />
+          <ToolbarButton
+            icon={Download}
+            onClick={handleExport}
+            title="Export to .md File"
+          />
         </div>
       </div>
       
-      {/* Actions and view options */}
-      <div className="flex items-center">
-        <ToolbarButton
-          icon={showMarkdown ? EyeOff : Eye}
-          onClick={() => setShowMarkdown(!showMarkdown)}
-          title={showMarkdown ? "Hide Markdown" : "Show Markdown"}
-        />
-        <ToolbarButton
-          icon={Clipboard}
-          onClick={handleCopyMarkdown}
-          title="Copy Markdown"
-        />
-        <ToolbarButton
-          icon={Download}
-          onClick={handleExport}
-          title="Export to .md File"
-        />
-        <ToolbarButton
-          icon={focusMode ? Minimize : Maximize}
-          onClick={() => setFocusMode(!focusMode)}
-          title={focusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
-        />
+      {/* Desktop toolbar - hidden on mobile */}
+      <div className="hidden md:flex justify-between items-center">
+        {/* Text formatting tools */}
+        <div className="flex items-center space-x-1">
+          <div className="flex">
+            <ToolbarButton 
+              icon={Bold} 
+              isActive={isFormatActive(MarkdownFormat.Bold)}
+              onClick={() => toggleFormat(MarkdownFormat.Bold)}
+              title="Bold"
+            />
+            <ToolbarButton 
+              icon={Italic} 
+              isActive={isFormatActive(MarkdownFormat.Italic)}
+              onClick={() => toggleFormat(MarkdownFormat.Italic)}
+              title="Italic"
+            />
+            <ToolbarButton 
+              icon={Code} 
+              isActive={isFormatActive(MarkdownFormat.Code)}
+              onClick={() => toggleFormat(MarkdownFormat.Code)}
+              title="Code"
+            />
+          </div>
+          
+          <div className="h-full w-px bg-gray-300 mx-2" />
+          
+          {/* Block formatting */}
+          <div className="flex">
+            <ToolbarButton 
+              icon={Hash} 
+              isActive={isFormatActive(MarkdownElementType.Heading1, true)}
+              onClick={() => toggleFormat(MarkdownElementType.Heading1, true)}
+              title="Heading 1"
+            />
+            <ToolbarButton 
+              icon={(props: IconProps) => <Hash {...props} size={16} />} 
+              isActive={isFormatActive(MarkdownElementType.Heading2, true)}
+              onClick={() => toggleFormat(MarkdownElementType.Heading2, true)}
+              title="Heading 2"
+            />
+            <ToolbarButton 
+              icon={(props: IconProps) => <Hash {...props} size={14} />} 
+              isActive={isFormatActive(MarkdownElementType.Heading3, true)}
+              onClick={() => toggleFormat(MarkdownElementType.Heading3, true)}
+              title="Heading 3"
+            />
+            <ToolbarButton 
+              icon={Quote} 
+              isActive={isFormatActive(MarkdownElementType.BlockQuote, true)}
+              onClick={() => toggleFormat(MarkdownElementType.BlockQuote, true)}
+              title="Quote"
+            />
+            <ToolbarButton 
+              icon={List} 
+              isActive={isFormatActive(MarkdownElementType.BulletedList, true)}
+              onClick={() => toggleFormat(MarkdownElementType.BulletedList, true)}
+              title="Bullet List"
+            />
+            <ToolbarButton 
+              icon={ListOrdered} 
+              isActive={isFormatActive(MarkdownElementType.NumberedList, true)}
+              onClick={() => toggleFormat(MarkdownElementType.NumberedList, true)}
+              title="Numbered List"
+            />
+          </div>
+          
+          <div className="h-full w-px bg-gray-300 mx-2" />
+          
+          {/* Insert elements */}
+          <div className="flex">
+            <ToolbarButton 
+              icon={ImageIcon} 
+              onClick={onInsertImage} 
+              title="Insert Image" 
+            />
+            <ToolbarButton 
+              icon={LinkIcon} 
+              onClick={onInsertLink} 
+              title="Insert Link" 
+            />
+            <DiagramButton />
+          </div>
+
+          <div className="h-full w-px bg-gray-300 mx-2" />
+          
+          {/* Table tools */}
+          <div className="flex">
+            <ToolbarButton
+              icon={Table}
+              onClick={() => insertTable()}
+              title="Insert Table"
+            />
+            {isTableActive() && (
+              <>
+                <ToolbarButton
+                  icon={Plus}
+                  onClick={insertRow}
+                  title="Insert Row"
+                />
+                <ToolbarButton
+                  icon={Plus}
+                  onClick={insertColumn}
+                  title="Insert Column"
+                />
+                <ToolbarButton
+                  icon={Minus}
+                  onClick={deleteRow}
+                  title="Delete Row"
+                />
+                <ToolbarButton
+                  icon={Minus}
+                  onClick={deleteColumn}
+                  title="Delete Column"
+                />
+              </>
+            )}
+          </div>
+        </div>
+        
+        {/* Actions and view options */}
+        <div className="flex items-center">
+          <ToolbarButton
+            icon={showMarkdown ? EyeOff : Eye}
+            onClick={() => setShowMarkdown(!showMarkdown)}
+            title={showMarkdown ? "Hide Markdown" : "Show Markdown"}
+          />
+          <ToolbarButton
+            icon={Clipboard}
+            onClick={handleCopyMarkdown}
+            title="Copy Markdown"
+          />
+          <ToolbarButton
+            icon={Download}
+            onClick={handleExport}
+            title="Export to .md File"
+          />
+          <ToolbarButton
+            icon={focusMode ? Minimize : Maximize}
+            onClick={() => setFocusMode(!focusMode)}
+            title={focusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+          />
+        </div>
       </div>
     </div>
   );

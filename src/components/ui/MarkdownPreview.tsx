@@ -18,13 +18,13 @@ const MarkdownPreview: React.FC = () => {
   }, [editorState, metadata]);
   
   return (
-    <div className="w-1/2 border-l h-full bg-gray-50 overflow-auto">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-2">
+    <div className="w-full md:w-1/2 border-t md:border-t-0 md:border-l h-full bg-gray-50 overflow-auto">
+      <div className="p-3 sm:p-4 md:p-6">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
           Markdown Preview
         </h2>
         
-        <pre className="font-mono text-sm whitespace-pre-wrap bg-white p-4 rounded-md border border-gray-200 overflow-auto">
+        <pre className="font-mono text-xs sm:text-sm whitespace-pre-wrap bg-white p-2 sm:p-4 rounded-md border border-gray-200 overflow-auto">
           {markdownText}
         </pre>
       </div>

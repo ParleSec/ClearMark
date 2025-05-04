@@ -334,8 +334,8 @@ html, body {
 /* Focus mode exit button */
 .focus-mode-exit {
   position: fixed;
-  top: 0;
-  right: 0;
+  top: 0.5rem;
+  right: 0.5rem;
   padding: 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
@@ -387,4 +387,96 @@ html, body {
 
 .dark .diagram-render {
   background-color: #f0f0f0;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .prose {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  
+  .prose h1 {
+    font-size: 1.75rem;
+  }
+  
+  .prose h2 {
+    font-size: 1.5rem;
+  }
+  
+  .prose h3 {
+    font-size: 1.25rem;
+  }
+  
+  .focus-mode-exit {
+    bottom: auto;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    min-height: auto !important;
+    min-width: auto !important;
+    max-width: fit-content;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+  
+  .focus-mode-exit:hover,
+  .focus-mode-exit:active {
+    opacity: 1;
+  }
+  
+  .focus-mode .toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+  }
+  
+  /* Improve touch targets for mobile */
+  button, 
+  [role="button"] {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+  }
+  
+  /* Smaller modal on mobile */
+  .modal-content {
+    width: 95%;
+    max-width: 420px;
+    padding: 1rem;
+  }
+  
+  /* Improve text readability on mobile */
+  .focus-mode-editor {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  /* Adjust floating menus for touch */
+  .floating-toolbar {
+    padding: 0.25rem;
+  }
+  
+  .floating-toolbar button {
+    margin: 0.125rem;
+  }
+}
+
+/* Touch-friendly scrolling */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent zoom on inputs on iOS */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="url"],
+  textarea {
+    font-size: 16px;
+  }
 }

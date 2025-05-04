@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { Slate, Editable } from 'slate-react';
+import { X, MinusCircle } from 'lucide-react';
 
 import { useEditorContext } from '../../context/EditorContext';
 import EditorElement from './EditorElement';
@@ -90,7 +91,8 @@ const Editor: React.FC = () => {
             className="focus-mode-exit"
             title="Exit focus mode"
           >
-            Exit Focus Mode
+            <span className="hidden sm:inline">Exit Focus Mode</span>
+            <X size={16} className="sm:hidden" />
           </button>
         )}
         
@@ -98,9 +100,9 @@ const Editor: React.FC = () => {
         {!focusMode && <FloatingToolbar />}
         
         {/* Main editor area with keyboard shortcuts */}
-        <div className={`flex flex-1 h-full ${focusMode ? 'main-content' : ''}`}>
-          <div className={`transition-all duration-300 ${showMarkdown && !focusMode ? 'w-1/2' : 'w-full'}`}>
-            <div className={`max-w-3xl mx-auto px-8 py-6 ${focusMode ? 'mt-12' : ''}`}>
+        <div className={`flex flex-col md:flex-row flex-1 h-full ${focusMode ? 'main-content' : ''}`}>
+          <div className={`transition-all duration-300 ${showMarkdown && !focusMode ? 'w-full md:w-1/2' : 'w-full'}`}>
+            <div className={`max-w-3xl mx-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 ${focusMode ? 'mt-12' : ''}`}>
               {/* Use KeyboardShortcuts to safely add keyboard shortcuts within the Slate context */}
               <KeyboardShortcuts>
                 <Editable
@@ -109,7 +111,7 @@ const Editor: React.FC = () => {
                   placeholder={focusMode ? "Write your thoughts..." : "Start writing your blog post here..."}
                   spellCheck={true}
                   autoFocus={true}
-                  className={`outline-none min-h-screen prose prose-lg ${
+                  className={`outline-none min-h-screen prose prose-sm sm:prose-base md:prose-lg ${
                     focusMode ? 'focus-mode-editor' : ''
                   }`}
                 />
@@ -117,7 +119,7 @@ const Editor: React.FC = () => {
             </div>
           </div>
           
-          {/* Markdown preview pane - completely hidden in focus mode */}
+          {/* Markdown preview pane - completely hidden in focus mode, stacked on mobile */}
           {showMarkdown && !focusMode && <MarkdownPreview />}
         </div>
         
@@ -164,7 +166,7 @@ const Editor: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowImageModal(false)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -172,7 +174,7 @@ const Editor: React.FC = () => {
               type="button"
               onClick={handleImageSubmit}
               disabled={!imageUrl}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Insert
             </button>
@@ -219,7 +221,7 @@ const Editor: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowLinkModal(false)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -227,7 +229,7 @@ const Editor: React.FC = () => {
               type="button"
               onClick={handleLinkSubmit}
               disabled={!linkUrl}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Insert
             </button>

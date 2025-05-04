@@ -116,9 +116,8 @@ const toggleMark = (editor: CustomEditor, format: MarkdownFormat): void => {
 const isMarkActive = (editor: CustomEditor, format: MarkdownFormat): boolean => {
   const marks = Editor.marks(editor);
   return marks ? marks[format as keyof typeof marks] === true : false;
-};
-
-// Add Element for TypeScript
+};// Add Element for TypeScript
 const isElement = (node: any): node is Element => {
   return node && node.type && node.children;
 };
+
