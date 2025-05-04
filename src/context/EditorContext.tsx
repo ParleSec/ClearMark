@@ -21,6 +21,8 @@ import { withQuote } from '../components/editor/plugins/withQuote';
 import { serializeToMarkdown } from '../utils/markdown';
 import { withTable } from '../components/editor/plugins/withTable';
 import { insertTable, insertRow, insertColumn, deleteRow, deleteColumn, isTableActive } from '../components/editor/plugins/withTable';
+import { withDiagrams } from '../components/editor/plugins/withDiagrams';
+import { insertDiagram } from '../components/editor/plugins/withDiagrams';
 
 interface EditorContextValue {
   editor: CustomEditor;
@@ -45,6 +47,7 @@ interface EditorContextValue {
   deleteRow: () => void;
   deleteColumn: () => void;
   isTableActive: () => boolean;
+  insertDiagram: (code: string, type?: string) => void;
 }
 
 const EditorContext = createContext<EditorContextValue | undefined>(undefined);
@@ -60,15 +63,17 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
 }) => {
   // Create a Slate editor object with all plugins
   const editor = useMemo(() => 
-    withTable(
-      withShortcuts(
-        withMarkdown(
-          withLinks(
-            withImages(
-              withQuote(
-                withHeadings(
-                  withHistory(
-                    withReact(createEditor())
+    withDiagrams(
+      withTable(
+        withShortcuts(
+          withMarkdown(
+            withLinks(
+              withImages(
+                withQuote(
+                  withHeadings(
+                    withHistory(
+                      withReact(createEditor())
+                    )
                   )
                 )
               )
@@ -247,6 +252,12 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     return isTableActive(editor);
   }, [editor]);
 
+  // Insert diagram
+  const handleInsertDiagram = useCallback((code: string, type?: string) => {
+    if (!code) return;
+    insertDiagram(editor, code);
+  }, [editor]);
+
   // Context value
   const value = {
     editor,
@@ -270,7 +281,8 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     insertColumn: () => insertColumn(editor),
     deleteRow: () => deleteRow(editor),
     deleteColumn: () => deleteColumn(editor),
-    isTableActive: () => isTableActive(editor)
+    isTableActive: () => isTableActive(editor),
+    insertDiagram: handleInsertDiagram,
   };
 
   return (

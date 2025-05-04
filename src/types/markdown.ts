@@ -13,7 +13,9 @@ export enum MarkdownElementType {
     Link = 'link',
     Table = 'table',
     TableRow = 'table-row',
-    TableCell = 'table-cell'
+    TableCell = 'table-cell',
+    Diagram = 'diagram',
+    DiagramCode = 'diagram-code'
   }
   
   // Enum of supported markdown formatting options

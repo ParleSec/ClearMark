@@ -2,6 +2,7 @@ import React from 'react';
 import { RenderElementProps } from 'slate-react';
 import { CustomElement } from '../../types/editor';
 import { MarkdownElementType } from '../../types/markdown';
+import DiagramElement from './DiagramElement';
 
 /**
  * Component to render different element types in the editor
@@ -121,6 +122,15 @@ export const EditorElement: React.FC<RenderElementProps> = ({
         <td style={style} className="border border-gray-300 p-2" {...attributes}>
           {children}
         </td>
+      );
+    
+    case 'diagram':
+      return (
+        <DiagramElement
+          element={element}
+          attributes={attributes}
+          children={children}
+        />
       );
     
     // Add any other element types here

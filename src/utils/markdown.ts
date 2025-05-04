@@ -79,6 +79,8 @@ const elementToMarkdown: ElementToMarkdown = {
   
   'link': (node, children) => `[${children}](${node.url})`,
 
+  'diagram': (node) => `\`\`\`${node.diagramType}\n${node.code}\n\`\`\``,
+
   'table': (node: CustomElement, _) => {
     // Instead of relying on children string, directly process the table structure
     const rows = node.children

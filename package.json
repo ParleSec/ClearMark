@@ -4,7 +4,7 @@
     "version": "0.1.0",
     "description": "A beautiful and modern markdown editor",
     "author": {
-        "name": "ClearMark Team"
+        "name": "Mason Parle"
     },
     "type": "commonjs",
     "main": "electron.cjs",
@@ -20,6 +20,7 @@
     "dependencies": {
         "clsx": "^2.1.1",
         "lucide-react": "^0.288.0",
+        "mermaid": "^11.6.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "slate": "^0.94.1",
@@ -63,7 +64,9 @@
             "target": [
                 {
                     "target": "portable",
-                    "arch": ["x64"]
+                    "arch": [
+                        "x64"
+                    ]
                 }
             ],
             "icon": "public/icon.ico"
@@ -72,7 +75,10 @@
             "target": [
                 {
                     "target": "dmg",
-                    "arch": ["x64", "arm64"]
+                    "arch": [
+                        "x64",
+                        "arm64"
+                    ]
                 }
             ],
             "category": "public.app-category.productivity"
@@ -81,11 +87,15 @@
             "target": [
                 {
                     "target": "AppImage",
-                    "arch": ["x64"]
+                    "arch": [
+                        "x64"
+                    ]
                 },
                 {
                     "target": "deb",
-                    "arch": ["x64"]
+                    "arch": [
+                        "x64"
+                    ]
                 }
             ],
             "category": "Office"

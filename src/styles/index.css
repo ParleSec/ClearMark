@@ -360,3 +360,31 @@ html, body {
   margin-top: 0;
   padding-top: 2rem;
 }
+
+/* Diagram styles */
+.diagram-container {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.diagram-render {
+  padding: 1rem;
+  background-color: #ffffff;
+  text-align: center;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagram-render svg {
+  max-width: 100%;
+  margin: 0 auto;
+  filter: saturate(0.9);
+}
+
+.dark .diagram-render {
+  background-color: #f0f0f0;
+}

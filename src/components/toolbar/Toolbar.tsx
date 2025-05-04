@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 
 import ToolbarButton from './ToolbarButton';
+import DiagramButton from './DiagramButton';
 import { useEditorContext } from '../../context/EditorContext';
 import { exportToMarkdownFile, copyMarkdownToClipboard } from '../../utils/exporters';
 import { MarkdownFormat, MarkdownElementType } from '../../types/markdown';
@@ -143,6 +144,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
             onClick={onInsertLink} 
             title="Insert Link" 
           />
+          <DiagramButton />
         </div>
 
         <div className="h-full w-px bg-gray-300 mx-2" />

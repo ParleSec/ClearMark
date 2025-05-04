@@ -18,7 +18,9 @@ export type ElementType =
   | 'link'
   | 'table'
   | 'table-row'
-  | 'table-cell';
+  | 'table-cell'
+  | 'diagram'
+  | 'diagram-code';
 
 // Custom elements
 export interface CustomText {
@@ -30,7 +32,9 @@ export interface CustomText {
 }
 
 // Extended editor interface with custom methods
-export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
+export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & {
+  insertDiagram: (code: string, type?: string) => void;
+};
 
 // Location type alias for convenience
 type Location = Path | Point | Range;
@@ -104,6 +108,12 @@ export interface TableCellElement extends BaseElement {
   type: 'table-cell';
 }
 
+export interface DiagramElement extends BaseElement {
+  type: 'diagram';
+  diagramType: string;
+  code: string;
+}
+
 export type CustomElement =
   | ParagraphElement
   | HeadingElement
@@ -114,4 +124,5 @@ export type CustomElement =
   | LinkElement
   | TableElement
   | TableRowElement
-  | TableCellElement;
+  | TableCellElement
+  | DiagramElement;
