@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Slate, Editable } from 'slate-react';
-import { X, MinusCircle } from 'lucide-react';
+import { X, MinusCircle, ChevronUp } from 'lucide-react';
 
 import { useEditorContext } from '../../context/EditorContext';
 import EditorElement from './EditorElement';
@@ -14,7 +14,7 @@ import KeyboardShortcuts from '../toolbar/KeyboardShortcuts';
 import SaveStatus from '../ui/SaveStatus';
 
 /**
- * Main Editor component with properly structured keyboard shortcuts
+ * Main Editor component with mobile-optimized features
  */
 const Editor: React.FC = () => {
   const {
@@ -37,6 +37,34 @@ const Editor: React.FC = () => {
   const [imageAlt, setImageAlt] = React.useState('');
   const [linkUrl, setLinkUrl] = React.useState('');
   const [linkText, setLinkText] = React.useState('');
+  
+  // State for mobile-specific behavior
+  const [isScrolled, setIsScrolled] = React.useState(false);
+  const [showScrollToTop, setShowScrollToTop] = React.useState(false);
+  
+  // Handle scrolling behavior for mobile devices
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show/hide the scroll-to-top button based on scroll position
+      setShowScrollToTop(window.scrollY > 300);
+      
+      // Track if page is scrolled for toolbar transparency
+      setIsScrolled(window.scrollY > 50);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+  
+  // Handle scroll to top for mobile
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
   
   // Custom rendering functions for Slate
   const renderElement = useCallback((props: any) => <EditorElement {...props} />, []);
@@ -78,8 +106,12 @@ const Editor: React.FC = () => {
         onChange={value => setEditorState(value)}
       >
         {/* Top toolbar - visible on hover in focus mode */}
-        <div className={focusMode ? 'toolbar' : ''}>
-          <div className="flex justify-between items-center px-4 py-2 border-b">
+        <div 
+          className={`${focusMode ? 'toolbar' : ''} sticky top-0 z-50 ${
+            isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'
+          }`}
+        >
+          <div className="flex justify-between items-center px-2 sm:px-4 py-2 border-b">
             <Toolbar 
               onInsertImage={handleInsertImage} 
               onInsertLink={handleInsertLink} 
@@ -88,24 +120,24 @@ const Editor: React.FC = () => {
           </div>
         </div>
         
-        {/* Exit focus mode button */}
+        {/* Exit focus mode button - enhanced for mobile */}
         {focusMode && (
           <button
             onClick={() => setFocusMode(false)}
-            className="focus-mode-exit"
+            className="fixed top-4 right-4 z-50 p-2 bg-white/90 rounded-full shadow-md backdrop-blur-sm hover:bg-white transition-all"
             title="Exit focus mode"
           >
             <span className="hidden sm:inline">Exit Focus Mode</span>
-            <X size={16} className="sm:hidden" />
+            <X size={20} className="sm:hidden" />
           </button>
         )}
         
-        {/* Floating toolbar - completely hidden in focus mode */}
-        {!focusMode && <FloatingToolbar />}
+        {/* Floating toolbar - completely hidden in focus mode and on small screens */}
+        {!focusMode && !showMarkdown && <FloatingToolbar />}
         
         {/* Main editor area with keyboard shortcuts */}
-        <div className={`flex flex-col md:flex-row flex-1 h-full ${focusMode ? 'main-content' : ''}`}>
-          <div className={`transition-all duration-300 ${showMarkdown && !focusMode ? 'w-full md:w-1/2' : 'w-full'}`}>
+        <div className={`flex flex-col lg:flex-row flex-1 h-full ${focusMode ? 'main-content' : ''}`}>
+          <div className={`transition-all duration-300 ${showMarkdown && !focusMode ? 'w-full lg:w-1/2' : 'w-full'}`}>
             <div className={`max-w-3xl mx-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 ${focusMode ? 'mt-12' : ''}`}>
               {/* Use KeyboardShortcuts to safely add keyboard shortcuts within the Slate context */}
               <KeyboardShortcuts>
@@ -115,23 +147,38 @@ const Editor: React.FC = () => {
                   placeholder={focusMode ? "Write your thoughts..." : "Start writing your blog post here..."}
                   spellCheck={true}
                   autoFocus={true}
-                  className={`outline-none min-h-screen prose prose-sm sm:prose-base md:prose-lg ${
+                  className={`outline-none min-h-screen prose prose-sm sm:prose-base lg:prose-lg ${
                     focusMode ? 'focus-mode-editor' : ''
-                  }`}
+                  } touch-manipulation`}
                 />
               </KeyboardShortcuts>
             </div>
           </div>
           
           {/* Markdown preview pane - completely hidden in focus mode, stacked on mobile */}
-          {showMarkdown && !focusMode && <MarkdownPreview />}
+          {showMarkdown && !focusMode && (
+            <div className="w-full lg:w-1/2 border-t lg:border-t-0 lg:border-l border-gray-200">
+              <MarkdownPreview />
+            </div>
+          )}
         </div>
         
         {/* Status bar - completely hidden in focus mode */}
         {!focusMode && <StatusBar />}
+        
+        {/* Scroll to top button - only visible on mobile when scrolled down */}
+        {showScrollToTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-4 right-4 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all lg:hidden"
+            aria-label="Scroll to top"
+          >
+            <ChevronUp size={20} />
+          </button>
+        )}
       </Slate>
       
-      {/* Image insertion modal */}
+      {/* Image insertion modal - mobile optimized */}
       <Modal
         isOpen={showImageModal}
         onClose={() => setShowImageModal(false)}
@@ -147,8 +194,11 @@ const Editor: React.FC = () => {
               id="imageUrl"
               value={imageUrl}
               onChange={e => setImageUrl(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
               placeholder="https://example.com/image.jpg"
+              autoCapitalize="none"
+              autoComplete="off"
+              autoCorrect="off"
             />
           </div>
           
@@ -161,16 +211,16 @@ const Editor: React.FC = () => {
               id="imageAlt"
               value={imageAlt}
               onChange={e => setImageAlt(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
               placeholder="Image description"
             />
           </div>
           
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-2">
             <button
               type="button"
               onClick={() => setShowImageModal(false)}
-              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -178,7 +228,7 @@ const Editor: React.FC = () => {
               type="button"
               onClick={handleImageSubmit}
               disabled={!imageUrl}
-              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Insert
             </button>
@@ -186,7 +236,7 @@ const Editor: React.FC = () => {
         </div>
       </Modal>
       
-      {/* Link insertion modal */}
+      {/* Link insertion modal - mobile optimized */}
       <Modal
         isOpen={showLinkModal}
         onClose={() => setShowLinkModal(false)}
@@ -198,12 +248,15 @@ const Editor: React.FC = () => {
               Link URL
             </label>
             <input
-              type="text"
+              type="url"
               id="linkUrl"
               value={linkUrl}
               onChange={e => setLinkUrl(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
               placeholder="https://example.com"
+              autoCapitalize="none"
+              autoComplete="off"
+              autoCorrect="off"
             />
           </div>
           
@@ -216,16 +269,16 @@ const Editor: React.FC = () => {
               id="linkText"
               value={linkText}
               onChange={e => setLinkText(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
               placeholder="Click here"
             />
           </div>
           
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-2">
             <button
               type="button"
               onClick={() => setShowLinkModal(false)}
-              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -233,7 +286,7 @@ const Editor: React.FC = () => {
               type="button"
               onClick={handleLinkSubmit}
               disabled={!linkUrl}
-              className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Insert
             </button>

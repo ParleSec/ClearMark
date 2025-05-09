@@ -10,6 +10,7 @@ interface ToolbarButtonProps {
   disabled?: boolean;
   keyboardShortcut?: string;
   hasDropdown?: boolean;
+  mobileFriendly?: boolean;
 }
 
 /**
@@ -22,7 +23,8 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   title,
   disabled = false,
   keyboardShortcut,
-  hasDropdown = false
+  hasDropdown = false,
+  mobileFriendly = false
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -47,9 +49,16 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
         onClick={onClick}
         disabled={disabled}
         className={`
-          p-1.5 rounded-md transition-all duration-150
+          ${mobileFriendly 
+            ? 'p-2 m-0.5' 
+            : 'p-1.5'
+          }
+          rounded-md transition-all duration-150
           flex items-center justify-center
-          min-w-7 min-h-7
+          ${mobileFriendly 
+            ? 'min-w-9 min-h-9' 
+            : 'min-w-7 min-h-7'
+          }
           ${isActive 
             ? 'bg-blue-50 text-blue-600 border border-blue-100' 
             : 'text-gray-700 hover:bg-gray-50 border border-transparent'
@@ -58,6 +67,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
             ? 'opacity-40 cursor-not-allowed' 
             : 'cursor-pointer'
           }
+          ${mobileFriendly ? 'touch-manipulation' : ''}
         `}
         aria-label={title}
         onMouseEnter={() => setShowTooltip(true)}
@@ -65,7 +75,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
         onFocus={() => setShowTooltip(true)}
         onBlur={() => setShowTooltip(false)}
       >
-        <Icon size={16} className={isActive ? 'stroke-2' : 'stroke-[1.5px]'} />
+        <Icon size={mobileFriendly ? 18 : 16} className={isActive ? 'stroke-2' : 'stroke-[1.5px]'} />
         {hasDropdown && <ChevronDown size={12} className="ml-0.5" />}
       </button>
       
