@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useEditor } from '../../context/EditorContext';
 import { insertDiagram } from '../editor/plugins/withDiagrams';
 
+// Import styled button component
+import ToolbarButton from './ToolbarButton';
+
 const DiagramButton: React.FC = () => {
   const { editor } = useEditor();
   const [showModal, setShowModal] = useState(false);
@@ -77,24 +80,50 @@ const DiagramButton: React.FC = () => {
     setDiagramType('');
   };
 
+  // Diagram icon component
+  const DiagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg 
+      width="18" 
+      height="18" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="1.5" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      {...props}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <line x1="8" y1="7" x2="12" y2="7" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+      <line x1="8" y1="17" x2="14" y2="17" />
+    </svg>
+  );
+
   return (
     <>
-      <button
-        type="button"
+      <ToolbarButton
+        icon={DiagramIcon}
         onClick={() => setShowModal(true)}
-        className="toolbar-button"
-        title="Insert Diagram"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-        </svg>
-      </button>
+        title="Insert Diagram (Flowchart, ER, etc.)"
+      />
 
       {/* Diagram insertion modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-3/4 max-w-3xl">
-            <h2 className="text-xl font-bold mb-4">Insert Diagram</h2>
+          <div className="bg-white rounded-lg p-6 w-3/4 max-w-3xl shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Insert Diagram</h2>
+              <button 
+                onClick={handleCloseModal}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -103,9 +132,9 @@ const DiagramButton: React.FC = () => {
               <select
                 value={diagramType}
                 onChange={handleTypeChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="" disabled>Choose Diagram</option>
+                <option value="" disabled>Choose Diagram Type</option>
                 <option value="flowchart">Flowchart</option>
                 <option value="sequence">Sequence Diagram</option>
                 <option value="classDiagram">Class Diagram</option>
@@ -121,8 +150,7 @@ const DiagramButton: React.FC = () => {
               <textarea
                 value={diagramCode}
                 onChange={(e) => setDiagramCode(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
-                rows={10}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm min-h-[240px] shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={diagramType ? "Enter diagram code here..." : "Select a diagram type first"}
                 disabled={!diagramType}
               />
@@ -131,13 +159,13 @@ const DiagramButton: React.FC = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 Cancel
               </button>
               <button
                 onClick={handleInsert}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 disabled={!diagramCode || !diagramType}
               >
                 Insert Diagram
