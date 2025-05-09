@@ -11,6 +11,7 @@ import MarkdownPreview from '../ui/MarkdownPreview';
 import Modal from '../ui/Modal';
 import FloatingToolbar from '../toolbar/FloatingToolbar';
 import KeyboardShortcuts from '../toolbar/KeyboardShortcuts';
+import SaveStatus from '../ui/SaveStatus';
 
 /**
  * Main Editor component with properly structured keyboard shortcuts
@@ -78,10 +79,13 @@ const Editor: React.FC = () => {
       >
         {/* Top toolbar - visible on hover in focus mode */}
         <div className={focusMode ? 'toolbar' : ''}>
-          <Toolbar 
-            onInsertImage={handleInsertImage} 
-            onInsertLink={handleInsertLink} 
-          />
+          <div className="flex justify-between items-center px-4 py-2 border-b">
+            <Toolbar 
+              onInsertImage={handleInsertImage} 
+              onInsertLink={handleInsertLink} 
+            />
+            <SaveStatus />
+          </div>
         </div>
         
         {/* Exit focus mode button */}

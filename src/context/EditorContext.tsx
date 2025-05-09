@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode, useEffect } from 'react';
 import { createEditor, Node, Transforms, Range, Editor, Element as SlateElement } from 'slate';
 import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history';
@@ -23,6 +23,8 @@ import { withTable } from '../components/editor/plugins/withTable';
 import { insertTable, insertRow, insertColumn, deleteRow, deleteColumn, isTableActive } from '../components/editor/plugins/withTable';
 import { withDiagrams } from '../components/editor/plugins/withDiagrams';
 import { insertDiagram } from '../components/editor/plugins/withDiagrams';
+import { useLocalStorage, useAutoSave } from '../hooks/useLocalStorage';
+import { STORAGE_KEYS, AUTOSAVE_DELAY } from '../utils/constants';
 
 interface EditorContextValue {
   editor: CustomEditor;
@@ -48,6 +50,15 @@ interface EditorContextValue {
   deleteColumn: () => void;
   isTableActive: () => boolean;
   insertDiagram: (code: string, type?: string) => void;
+  saveStatus: SaveStatus;
+  lastSaved: Date | null;
+  manualSave: () => Promise<void>;
+}
+
+interface SaveStatus {
+  isSaving: boolean;
+  lastError: Error | null;
+  lastSaved: Date | null;
 }
 
 const EditorContext = createContext<EditorContextValue | undefined>(undefined);
@@ -84,20 +95,99 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     ), 
   []);
 
-  // Editor state
-  const [editorState, setEditorState] = useState<EditorState>(initialContent);
+  // Save status tracking
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>({
+    isSaving: false,
+    lastError: null,
+    lastSaved: null
+  });
+
+  // Get editor content from localStorage or use default
+  const [editorState, setEditorState] = useLocalStorage<EditorState>(
+    STORAGE_KEYS.EDITOR_CONTENT,
+    initialContent
+  );
   
+  // Get metadata from localStorage or use default
+  const [metadata, setMetadata] = useLocalStorage<PostMetadata>(
+    STORAGE_KEYS.EDITOR_METADATA,
+    {
+      title: '',
+      description: '',
+      tags: [],
+      date: new Date().toISOString().split('T')[0],
+    }
+  );
+
+  // Manual save function
+  const manualSave = useCallback(async () => {
+    setSaveStatus(prev => ({ ...prev, isSaving: true }));
+    try {
+      // Save editor content
+      localStorage.setItem(STORAGE_KEYS.EDITOR_CONTENT, JSON.stringify(editorState));
+      // Save metadata
+      localStorage.setItem(STORAGE_KEYS.EDITOR_METADATA, JSON.stringify(metadata));
+      // Update last saved timestamp
+      const now = new Date();
+      localStorage.setItem(STORAGE_KEYS.LAST_SAVED, now.toISOString());
+      setSaveStatus(prev => ({
+        ...prev,
+        isSaving: false,
+        lastError: null,
+        lastSaved: now
+      }));
+    } catch (error) {
+      console.error('Error saving editor state:', error);
+      setSaveStatus(prev => ({
+        ...prev,
+        isSaving: false,
+        lastError: error instanceof Error ? error : new Error('Failed to save')
+      }));
+    }
+  }, [editorState, metadata]);
+
+  // Enhanced auto-save with error handling and status tracking
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const autoSave = async () => {
+      if (saveStatus.isSaving) return; // Don't start a new save if one is in progress
+      
+      setSaveStatus(prev => ({ ...prev, isSaving: true }));
+      try {
+        await manualSave();
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        setSaveStatus(prev => ({
+          ...prev,
+          isSaving: false,
+          lastError: error instanceof Error ? error : new Error('Auto-save failed')
+        }));
+      }
+    };
+
+    // Debounced auto-save
+    timeoutId = setTimeout(autoSave, AUTOSAVE_DELAY);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [editorState, metadata, manualSave]);
+
+  // Load last saved timestamp on mount
+  useEffect(() => {
+    const lastSavedStr = localStorage.getItem(STORAGE_KEYS.LAST_SAVED);
+    if (lastSavedStr) {
+      setSaveStatus(prev => ({
+        ...prev,
+        lastSaved: new Date(lastSavedStr)
+      }));
+    }
+  }, []);
+
   // UI states
   const [showMarkdown, setShowMarkdown] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
-  
-  // Metadata
-  const [metadata, setMetadata] = useState<PostMetadata>({
-    title: '',
-    description: '',
-    tags: [],
-    date: new Date().toISOString().split('T')[0],
-  });
 
   // Generate markdown content from editor state
   const markdownContent = useMemo(() => {
@@ -285,13 +375,16 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     insertLink: handleInsertLink,
     toggleFormat,
     isFormatActive,
-    insertTable: (rows = 3, cols = 3) => insertTable(editor, rows, cols),
-    insertRow: () => insertRow(editor),
-    insertColumn: () => insertColumn(editor),
-    deleteRow: () => deleteRow(editor),
-    deleteColumn: () => deleteColumn(editor),
-    isTableActive: () => isTableActive(editor),
+    insertTable: handleInsertTable,
+    insertRow: handleInsertRow,
+    insertColumn: handleInsertColumn,
+    deleteRow: handleDeleteRow,
+    deleteColumn: handleDeleteColumn,
+    isTableActive: handleIsTableActive,
     insertDiagram: handleInsertDiagram,
+    saveStatus,
+    lastSaved: saveStatus.lastSaved,
+    manualSave
   };
 
   return (
