@@ -98,7 +98,7 @@ export const DEFAULT_CONFIG: EditorConfig = {
   fontSize: 16,
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   lineHeight: 1.6,
-  maxWidth: 760,
+  maxWidth: 1048,
   showToolbar: true,
   autoHideToolbar: true,
   keyboardShortcuts: true,
