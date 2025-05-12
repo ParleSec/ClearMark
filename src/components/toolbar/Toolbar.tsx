@@ -338,7 +338,7 @@ const Toolbar: React.FC<{
                   title="Insert Link" 
                   mobileFriendly
                 />
-                {/* <DiagramButton /> */}
+                <DiagramButton />
                 <ToolbarButton
                   icon={Table}
                   onClick={() => insertTable()}
@@ -505,7 +505,7 @@ const Toolbar: React.FC<{
               title="Insert Link" 
               mobileFriendly
             />
-            {/* <DiagramButton /> */}
+            <DiagramButton />
             <ToolbarButton
               icon={Table}
               onClick={() => insertTable()}
@@ -674,7 +674,7 @@ const Toolbar: React.FC<{
                 onClick={onInsertLink} 
                 title="Insert Link" 
               />
-              {/* <DiagramButton /> */}
+              <DiagramButton />
               <ToolbarButton
                 icon={Table}
                 onClick={() => insertTable()}

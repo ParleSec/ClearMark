@@ -49,7 +49,7 @@ interface EditorContextValue {
   deleteRow: () => void;
   deleteColumn: () => void;
   isTableActive: () => boolean;
-  insertDiagram: (code: string, type?: string) => void;
+  insertDiagram: (code: string, type: string) => void;
   saveStatus: SaveStatus;
   lastSaved: Date | null;
   manualSave: () => Promise<void>;
@@ -352,9 +352,9 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
   }, [editor]);
 
   // Insert diagram
-  const handleInsertDiagram = useCallback((code: string, type?: string) => {
+  const handleInsertDiagram = useCallback((code: string, type: string = 'flowchart') => {
     if (!code) return;
-    insertDiagram(editor, code);
+    insertDiagram(editor, code, type);
   }, [editor]);
 
   // Context value

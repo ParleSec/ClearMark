@@ -34,6 +34,7 @@ export interface CustomText {
 // Extended editor interface with custom methods
 export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & {
   insertDiagram: (code: string, type?: string) => void;
+  updateDiagram: (path: Path, code: string, type: string | null) => void;
 };
 
 // Location type alias for convenience

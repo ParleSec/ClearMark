@@ -1,227 +1,249 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Transforms } from 'slate';
 import { RenderElementProps } from 'slate-react';
+import { useSlate, ReactEditor } from 'slate-react';
+import { Edit, Maximize, Minimize, Copy, Trash2, AlertTriangle } from 'lucide-react';
 import mermaid from 'mermaid';
+import { DiagramElement as DiagramElementType } from '../../types/editor';
+import DiagramEditor from './DiagramEditor';
 
-// Initialize mermaid
-mermaid.initialize({
-  startOnLoad: true,
-  theme: 'default',
-  securityLevel: 'loose',
-  flowchart: { 
-    htmlLabels: true,
-    curve: 'basis'
-  },
-  pie: {
-    useWidth: 800,
-    textPosition: 0.75
-  },
-  themeVariables: {
-    // Ensure text has good contrast
-    primaryTextColor: '#212121',
-    // Use vibrant but accessible colors
-    primaryColor: '#5a9bd5',
-    secondaryColor: '#7ac36a',
-    tertiaryColor: '#faa75b',
-    // Colors for charts
-    pie1: '#5b9bd5',
-    pie2: '#ed7d31',
-    pie3: '#a5a5a5',
-    pie4: '#ffc000',
-    pie5: '#4472c4',
-    pie6: '#70ad47',
-    pie7: '#255e91',
-    pie8: '#9e480e'
-  }
-});
+// Try to log mermaid version and configurations
+console.log('Mermaid library loaded:', typeof mermaid);
+try {
+  // Minimal initialization with just the essential options
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'loose',
+  });
+  console.log('Mermaid initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize mermaid:', error);
+}
 
-// Unique ID generator for diagrams
-const uniqueId = () => `diagram-${Math.random().toString(36).substr(2, 9)}`;
-
-const DiagramElement: React.FC<RenderElementProps> = ({ attributes, children, element }) => {
-  const diagramRef = useRef<HTMLDivElement>(null);
-  const [diagramId] = useState(uniqueId());
-  const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [code, setCode] = useState((element as any).code || '');
+// Simplified component with minimal moving parts
+const MermaidDiagram: React.FC<{ code: string }> = ({ code }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [showError, setShowError] = useState(false);
+  const [showCode, setShowCode] = useState(false);
   
-  // Function to render the diagram
-  const renderDiagram = () => {
-    if (!diagramRef.current) return;
+  // Clean diagram code - remove duplicate prefixes
+  const cleanCode = code.trim().replace(/^flowchart flowchart/, 'flowchart');
+  
+  // Render the diagram - use a much simpler approach
+  useEffect(() => {
+    console.log('Diagram effect running with code:', cleanCode);
     
-    try {
-      setError(null);
-      // Clear previous diagram
-      diagramRef.current.innerHTML = '';
+    // Clear timeout on unmount
+    const timeoutId = setTimeout(() => {
+      if (!containerRef.current) {
+        console.error('Container ref is null - cannot render diagram');
+        setShowError(true);
+        return;
+      }
       
-      // Create diagram with current code
-      mermaid.render(diagramId, code)
-        .then(({ svg }) => {
-          if (diagramRef.current) {
-            diagramRef.current.innerHTML = svg;
-            
-            // Apply custom styling to SVG
-            if (diagramRef.current.firstChild) {
-              enhanceSvgStyles(diagramRef.current.firstChild as HTMLElement);
-            }
+      try {
+        // Clear any previous content
+        containerRef.current.innerHTML = '';
+        console.log('Container cleared, preparing to render');
+        
+        // Create the mermaid element
+        const id = `diagram-${Date.now()}`;
+        const mermaidEl = document.createElement('div');
+        mermaidEl.className = 'mermaid';
+        mermaidEl.textContent = cleanCode;
+        mermaidEl.id = id;
+        
+        // Add to container
+        containerRef.current.appendChild(mermaidEl);
+        console.log('Mermaid element created with ID:', id);
+        
+        // Force browser reflow
+        window.getComputedStyle(mermaidEl).display;
+        console.log('Forced reflow');
+        
+        // Try rendering after container is ready
+        setTimeout(() => {
+          try {
+            console.log('Running mermaid.run() on element:', id);
+            mermaid.run({
+              nodes: [mermaidEl],
+              suppressErrors: false
+            }).then(() => {
+              console.log('Mermaid render succeeded!');
+              setShowError(false);
+            }).catch(err => {
+              console.error('Mermaid.run() promise rejected:', err);
+              setShowError(true);
+              setShowCode(true);
+            });
+          } catch (runError) {
+            console.error('Exception during mermaid.run():', runError);
+            setShowError(true);
+            setShowCode(true);
           }
-        })
-        .catch((err) => {
-          console.error('Mermaid rendering error:', err);
-          setError('Error rendering diagram. Check your syntax.');
-        });
-    } catch (err) {
-      console.error('Mermaid error:', err);
-      setError('Error rendering diagram. Check your syntax.');
-    }
-  };
-  
-  // Render diagram when component mounts or code changes
-  useEffect(() => {
-    // Use a short timeout to ensure the DOM is ready
-    const timer = setTimeout(() => {
-      renderDiagram();
-    }, 10);
+        }, 500); // Longer delay to ensure DOM is ready
+      } catch (err) {
+        console.error('Error in diagram rendering effect:', err);
+        setShowError(true);
+        setShowCode(true);
+      }
+    }, 500); // Delay initial setup too
     
-    return () => clearTimeout(timer);
-  }, [diagramId, code, isEditing]);
+    return () => clearTimeout(timeoutId);
+  }, [cleanCode]);
   
-  // Force re-render when component mounts
-  useEffect(() => {
-    renderDiagram();
-  }, []);
-  
-  // Add custom styling to SVG after rendering
-  const enhanceSvgStyles = (svgElement: HTMLElement) => {
-    // Ensure all text is readable but preserve intentional colors
-    const textElements = svgElement.querySelectorAll('text');
-    textElements.forEach(text => {
-      const currentColor = text.style.fill || text.getAttribute('fill');
-      // Only change text color if it's too light or not set
-      if (!currentColor || 
-          currentColor === 'white' || 
-          currentColor === '#fff' || 
-          currentColor === '#ffffff') {
-        text.style.fill = '#212121';
-      }
-      
-      // Add text shadow for better contrast if text is on a colored background
-      if (currentColor && currentColor !== '#212121' && currentColor !== 'black') {
-        text.style.textShadow = '0 0 3px white, 0 0 2px white';
-      }
-      
-      // Increase font weight for better readability
-      text.style.fontWeight = '500';
-    });
-    
-    // Ensure diagram has a white background for good contrast
-    const firstG = svgElement.querySelector('g');
-    if (firstG) {
-      const existingBg = svgElement.querySelector('rect.diagram-background');
-      if (!existingBg) {
-        // Create a white background for the diagram if none exists
-        const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        background.setAttribute('width', '100%');
-        background.setAttribute('height', '100%');
-        background.setAttribute('fill', 'white');
-        background.setAttribute('class', 'diagram-background');
-        firstG.insertBefore(background, firstG.firstChild);
-      }
-    }
-    
-    // For pie charts: ensure they have labels and good contrast
-    const pieChart = svgElement.querySelector('.pie-chart');
-    if (pieChart) {
-      // Make sure pie slices have a dark outline for better separation
-      const pieSlices = svgElement.querySelectorAll('.pieCircle');
-      pieSlices.forEach(slice => {
-        slice.setAttribute('stroke', '#333');
-        slice.setAttribute('stroke-width', '1');
-      });
-      
-      // Ensure pie chart legend is visible
-      const legend = svgElement.querySelector('.legend');
-      if (!legend) {
-        // Add programmatic note if no legend exists
-        const textNode = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        textNode.setAttribute('x', '10');
-        textNode.setAttribute('y', svgElement.clientHeight - 20 + '');
-        textNode.setAttribute('fill', '#666');
-        textNode.textContent = 'Note: Use "title" in your code to add a title to this chart';
-        svgElement.appendChild(textNode);
-      }
-    }
-  };
-  
-  // Handle code editing
-  const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setCode(e.target.value);
-  };
-  
-  // Toggle edit mode
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
-  };
-  
+  // If there was an error, show both the error and the diagram container
+  // The diagram might still render even with an error
   return (
-    <div {...attributes} className="diagram-container my-4 border rounded">
-      {children}
+    <div className="w-full">
+      {showError && (
+        <div className="mb-4 p-2 bg-red-50 text-red-500 rounded flex items-center">
+          <AlertTriangle size={16} className="mr-2" />
+          <span>There was a problem rendering the diagram.</span>
+        </div>
+      )}
       
-      {isEditing ? (
-        <div contentEditable={false}>
-          <textarea
-            value={code}
-            onChange={handleCodeChange}
-            className="w-full p-2 font-mono text-sm border-b"
-            rows={10}
-          />
-          <div className="flex justify-between p-2 bg-gray-50">
-            <button 
-              onClick={toggleEditMode}
-              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Save & Render
-            </button>
-            {error && <div className="text-red-500 text-sm">{error}</div>}
-          </div>
-        </div>
-      ) : (
-        <div contentEditable={false}>
-          <div ref={diagramRef} className="diagram-render p-4" aria-label={`Diagram: ${getDiagramDescription(code)}`} role="img"></div>
-          <div className="flex justify-between p-2 border-t bg-gray-50">
-            <span className="text-sm text-gray-500">
-              {(element as any).diagramType || 'mermaid'} diagram
-            </span>
-            <button 
-              onClick={toggleEditMode}
-              className="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Edit Diagram
-            </button>
-          </div>
-        </div>
+      <div ref={containerRef} className="w-full py-2" />
+      
+      {showCode && showError && (
+        <pre className="mt-4 p-3 bg-gray-100 overflow-auto rounded text-xs">
+          <code>{cleanCode}</code>
+        </pre>
       )}
     </div>
   );
 };
 
-// Helper function to generate a text description for the diagram (for accessibility)
-const getDiagramDescription = (diagramCode: string): string => {
-  // Try to extract a basic description from the diagram code
-  if (diagramCode.includes('title')) {
-    const titleMatch = diagramCode.match(/title\s+([^\n]+)/);
-    if (titleMatch && titleMatch[1]) {
-      return titleMatch[1];
+/**
+ * A streamlined diagram component for the editor
+ */
+const DiagramElement: React.FC<RenderElementProps> = ({ attributes, children, element }) => {
+  const editor = useSlate();
+  const [showEditor, setShowEditor] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  
+  // Cast element to DiagramElementType
+  const typedElement = element as DiagramElementType;
+  
+  // Extract diagram properties
+  const diagramType = typedElement.diagramType || 'flowchart';
+  const diagramCode = typedElement.code || '';
+
+  // Handle diagram edit
+  const handleEditDiagram = (): void => {
+    setShowEditor(true);
+  };
+  
+  // Handle diagram update
+  const handleUpdateDiagram = (code: string, type: string): void => {
+    try {
+      // Get the path to the current diagram element
+      const path = ReactEditor.findPath(editor, element);
+      
+      // Update the diagram at this path
+      editor.updateDiagram(path, code, type);
+    } catch (err) {
+      console.error('Error updating diagram:', err);
     }
-  }
-  
-  // Detect diagram type for basic description
-  if (diagramCode.includes('graph')) return 'Flowchart diagram';
-  if (diagramCode.includes('sequenceDiagram')) return 'Sequence diagram';
-  if (diagramCode.includes('classDiagram')) return 'Class diagram';
-  if (diagramCode.includes('erDiagram')) return 'Entity Relationship diagram';
-  if (diagramCode.includes('pie')) return 'Pie chart';
-  
-  return 'Visual diagram';
+  };
+
+  // Handle diagram deletion
+  const handleDeleteDiagram = (): void => {
+    try {
+      // Don't use the editor.removeNodes (which could be recursive)
+      // Instead use Transforms directly
+      const path = ReactEditor.findPath(editor, element);
+      Transforms.removeNodes(editor, { at: path });
+    } catch (err) {
+      console.error('Error deleting diagram:', err);
+    }
+  };
+
+  // Get title based on diagram type
+  const getDiagramTitle = (): string => {
+    const titles: Record<string, string> = {
+      'flowchart': 'Flow Chart',
+      'sequence': 'Sequence Diagram',
+      'pie': 'Pie Chart',
+      'class': 'Class Diagram',
+      'er': 'ER Diagram',
+      'gantt': 'Gantt Chart'
+    };
+    
+    return titles[diagramType] || 'Diagram';
+  };
+
+  return (
+    <div {...attributes} className="py-2 my-4 select-none">
+      <div contentEditable={false} className="relative">
+        {/* Diagram container */}
+        <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
+          {/* Diagram header */}
+          <div className="bg-gray-50 border-b px-3 py-2 flex justify-between items-center">
+            <span className="font-medium text-gray-700 text-sm">{getDiagramTitle()}</span>
+            
+            <div className="flex items-center space-x-1">
+              <button 
+                className="p-1 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded"
+                onClick={handleEditDiagram}
+                aria-label="Edit diagram"
+                title="Edit diagram"
+              >
+                <Edit size={16} />
+              </button>
+              
+              <button 
+                className="p-1 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded copy-button"
+                onClick={() => navigator.clipboard.writeText(diagramCode)}
+                aria-label="Copy diagram code"
+                title="Copy diagram code"
+              >
+                <Copy size={16} />
+              </button>
+              
+              <button 
+                className="p-1 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded"
+                onClick={() => setIsExpanded(!isExpanded)}
+                aria-label={isExpanded ? "Minimize diagram" : "Expand diagram"}
+                title={isExpanded ? "Minimize" : "Expand"}
+              >
+                {isExpanded ? <Minimize size={16} /> : <Maximize size={16} />}
+              </button>
+              
+              <button 
+                className="p-1 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded"
+                onClick={handleDeleteDiagram}
+                aria-label="Delete diagram"
+                title="Delete diagram"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+          
+          {/* Diagram content */}
+          <div 
+            className={`diagram-container p-4 bg-white flex items-center justify-center ${
+              isExpanded ? 'h-[calc(100vh-10rem)] overflow-auto' : 'max-h-[500px] overflow-auto'
+            }`}
+          >
+            <MermaidDiagram code={diagramCode} />
+          </div>
+        </div>
+        
+        {/* Diagram editor modal */}
+        <DiagramEditor
+          isOpen={showEditor}
+          onClose={() => setShowEditor(false)}
+          editor={editor}
+          diagramType={diagramType}
+          diagramCode={diagramCode}
+          onSave={handleUpdateDiagram}
+        />
+      </div>
+      {children}
+    </div>
+  );
 };
 
-export default DiagramElement; 
+export default DiagramElement;
