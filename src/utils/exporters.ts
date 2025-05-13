@@ -13,13 +13,24 @@ export const exportToMarkdownFile = (
 ): void => {
   const { content } = generateMarkdownOutput(editorState, metadata, options);
   
+  // Sanitize filename and ensure it has .md extension
+  let sanitizedFilename = filename.replace(/[/\\?%*:|"<>]/g, '-').trim();
+  if (!sanitizedFilename) {
+    sanitizedFilename = 'blog-post';
+  }
+  
+  // Add .md extension if not already present
+  if (!sanitizedFilename.toLowerCase().endsWith('.md')) {
+    sanitizedFilename += '.md';
+  }
+  
   // Create blob and download
   const blob = new Blob([content], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
   
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${filename}.md`;
+  a.download = sanitizedFilename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

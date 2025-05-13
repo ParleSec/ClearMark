@@ -30,6 +30,9 @@ const Toolbar: React.FC<{
   const [isLandscape, setIsLandscape] = useState(
     typeof window !== 'undefined' ? window.innerWidth > window.innerHeight : false
   );
+  // State for filename dialog
+  const [showFilenameDialog, setShowFilenameDialog] = useState(false);
+  const [exportFilename, setExportFilename] = useState('');
   
   const {
     editorState,
@@ -50,8 +53,23 @@ const Toolbar: React.FC<{
   
   // Handle exporting to markdown file
   const handleExport = () => {
-    const filename = metadata.title || 'blog-post';
+    // Set initial filename value
+    setExportFilename(metadata.title || 'blog-post');
+    // Show filename dialog
+    setShowFilenameDialog(true);
+  };
+  
+  // Handle actual export after filename confirmation
+  const handleExportConfirm = () => {
+    // Use the user-provided filename or fallback to a default
+    const filename = exportFilename.trim() || 'blog-post';
     exportToMarkdownFile(editorState, filename, metadata);
+    setShowFilenameDialog(false);
+  };
+  
+  // Handle closing the dialog
+  const handleExportCancel = () => {
+    setShowFilenameDialog(false);
   };
   
   // Handle copying markdown to clipboard
@@ -62,6 +80,25 @@ const Toolbar: React.FC<{
       alert('Markdown copied to clipboard!');
     } else {
       alert('Failed to copy to clipboard. Please try again.');
+    }
+  };
+  
+  // Handle keydown events in the filename dialog
+  const handleFilenameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleExportConfirm();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleExportCancel();
+    }
+  };
+  
+  // Handle click outside to close the dialog
+  const handleDialogBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only close if the backdrop itself was clicked (not the dialog content)
+    if (e.target === e.currentTarget) {
+      handleExportCancel();
     }
   };
   
@@ -745,6 +782,53 @@ const Toolbar: React.FC<{
           </div>
         </div>
       </div>
+
+      {/* Filename Dialog */}
+      {showFilenameDialog && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" 
+          onClick={handleDialogBackdropClick}
+        >
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-4">Export File</h3>
+            <div className="mb-4">
+              <label htmlFor="filename" className="block text-sm font-medium text-gray-700 mb-1">
+                Filename
+              </label>
+              <input
+                type="text"
+                id="filename"
+                value={exportFilename}
+                onChange={e => setExportFilename(e.target.value)}
+                onKeyDown={handleFilenameKeyDown}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter filename"
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 mt-1">.md extension will be added automatically if not included</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleExportCancel}
+                className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 
+                  bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleExportConfirm}
+                className="px-4 py-2 border border-transparent text-sm font-medium rounded-md
+                  text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2
+                  focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
