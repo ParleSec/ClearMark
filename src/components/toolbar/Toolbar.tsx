@@ -3,7 +3,8 @@ import {
   Bold, Italic, Code, Hash, List, ListOrdered, Quote, 
   Link as LinkIcon, Image as ImageIcon, FileDown, Eye, 
   EyeOff, Copy, Maximize, Minimize, Table, Plus, Minus,
-  Menu, X, MoreHorizontal, ChevronRight
+  Menu, X, MoreHorizontal, ChevronRight, ImagePlus,
+  Settings
 } from 'lucide-react';
 
 import ToolbarButton from './ToolbarButton';
@@ -11,6 +12,8 @@ import DiagramButton from './DiagramButton';
 import { useEditorContext } from '../../context/EditorContext';
 import { exportToMarkdownFile, copyMarkdownToClipboard } from '../../utils/exporters';
 import { MarkdownFormat, MarkdownElementType } from '../../types/markdown';
+import { Editor, Element as SlateElement } from 'slate';
+import ImageToolbar from './ImageToolbar';
 
 // Define IconProps type for custom icons
 type IconProps = React.ComponentProps<typeof Bold>;
@@ -35,6 +38,7 @@ const Toolbar: React.FC<{
   const [exportFilename, setExportFilename] = useState('');
   
   const {
+    editor,
     editorState,
     showMarkdown,
     setShowMarkdown,
@@ -50,6 +54,28 @@ const Toolbar: React.FC<{
     deleteColumn,
     isTableActive
   } = useEditorContext();
+  
+  // Add state to track if image submenu is open
+  const [showImageSubmenu, setShowImageSubmenu] = useState(false);
+  
+  // Function to check if an image is currently selected
+  const isImageSelected = () => {
+    if (!editor.selection) return false;
+    
+    try {
+      const [match] = Editor.nodes(editor, {
+        match: n => 
+          !Editor.isEditor(n) && 
+          SlateElement.isElement(n) && 
+          (n as any).type === 'image',
+        at: editor.selection
+      });
+      
+      return !!match;
+    } catch (error) {
+      return false;
+    }
+  };
   
   // Handle exporting to markdown file
   const handleExport = () => {
@@ -262,8 +288,8 @@ const Toolbar: React.FC<{
                 <>
                   <ToolbarButton
                     icon={ImageIcon}
-                    onClick={onInsertImage}
-                    title="Insert Image"
+                    onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
+                    title={isImageSelected() ? "Image Options" : "Insert Image"}
                     mobileFriendly
                   />
                   <ToolbarButton
@@ -365,8 +391,8 @@ const Toolbar: React.FC<{
               <div className="flex flex-wrap items-center gap-1 mt-1.5">
                 <ToolbarButton 
                   icon={ImageIcon} 
-                  onClick={onInsertImage} 
-                  title="Insert Image" 
+                  onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
+                  title={isImageSelected() ? "Image Options" : "Insert Image"}
                   mobileFriendly
                 />
                 <ToolbarButton 
@@ -532,8 +558,8 @@ const Toolbar: React.FC<{
           <div className="flex items-center space-x-0.5">
             <ToolbarButton 
               icon={ImageIcon} 
-              onClick={onInsertImage} 
-              title="Insert Image" 
+              onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
+              title={isImageSelected() ? "Image Options" : "Insert Image"}
               mobileFriendly
             />
             <ToolbarButton 
@@ -703,8 +729,8 @@ const Toolbar: React.FC<{
             <div className="flex items-center mr-2">
               <ToolbarButton 
                 icon={ImageIcon} 
-                onClick={onInsertImage} 
-                title="Insert Image" 
+                onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
+                title={isImageSelected() ? "Image Options" : "Insert Image"}
               />
               <ToolbarButton 
                 icon={LinkIcon} 
@@ -829,6 +855,36 @@ const Toolbar: React.FC<{
           </div>
         </div>
       )}
+
+      {/* Image Submenu */}
+      {showImageSubmenu && (
+        <div className="absolute left-0 mt-1 z-50 bg-white rounded shadow-lg border border-gray-200 p-1 whitespace-nowrap" 
+             onMouseLeave={() => setShowImageSubmenu(false)}>
+          <button
+            className="flex items-center space-x-2 w-full px-3 py-1.5 text-sm text-left hover:bg-gray-100 rounded-sm"
+            onClick={() => {
+              onInsertImage();
+              setShowImageSubmenu(false);
+            }}
+          >
+            <ImagePlus size={16} />
+            <span>Insert New Image</span>
+          </button>
+          <button
+            className="flex items-center space-x-2 w-full px-3 py-1.5 text-sm text-left hover:bg-gray-100 rounded-sm"
+            onClick={() => {
+              setShowImageSubmenu(false);
+              // The ImageToolbar will handle showing the image toolbar
+            }}
+          >
+            <Settings size={16} />
+            <span>Edit Current Image</span>
+          </button>
+        </div>
+      )}
+
+      {/* Image toolbar in floating mode */}
+      <ImageToolbar mode="floating" showControls="basic" />
     </div>
   );
 };

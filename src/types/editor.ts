@@ -90,6 +90,14 @@ export interface ImageElement extends BaseElement {
   type: 'image';
   url: string;
   alt?: string;
+  size?: 'small' | 'medium' | 'large' | 'full';
+  alignment?: 'left' | 'center' | 'right';
+  filter?: string;
+  brightness?: number;
+  contrast?: number;
+  saturation?: number;
+  blur?: number;
+  grayscale?: boolean;
 }
 
 export interface LinkElement extends BaseElement {

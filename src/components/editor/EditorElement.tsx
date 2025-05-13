@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { RenderElementProps } from 'slate-react';
-import { CustomElement } from '../../types/editor';
+import { CustomElement, ImageElement } from '../../types/editor';
 import { MarkdownElementType } from '../../types/markdown';
 import DiagramElement from './DiagramElement';
+import { useSlate, ReactEditor } from 'slate-react';
+import ImageToolbar, { 
+  generateImageFilterStyle, 
+  getImageSizeClass, 
+  getImageAlignmentClass,
+  getImageTransitionStyle
+} from '../toolbar/ImageToolbar';
 
 /**
  * Component to render different element types in the editor
@@ -12,6 +19,8 @@ export const EditorElement: React.FC<RenderElementProps> = ({
   attributes,
   children,
 }) => {
+  const editor = useSlate();
+  const [isSelected, setIsSelected] = useState(false);
   const customElement = element as any;
   const style = customElement.align ? { textAlign: customElement.align } : {};
 
@@ -74,14 +83,34 @@ export const EditorElement: React.FC<RenderElementProps> = ({
       );
     
     case 'image':
-      const { url, alt } = element as any;
+      const { url, alt, size, alignment, filter, brightness, contrast, saturation, blur, grayscale } = element as ImageElement;
+      
       return (
-        <div style={style} {...attributes}>
-          <div contentEditable={false} className="text-center my-4">
+        <div 
+          style={style} 
+          {...attributes}
+          onMouseEnter={() => setIsSelected(true)}
+          onMouseLeave={() => setIsSelected(false)}
+        >
+          <div contentEditable={false} className={`my-4 ${alignment ? `text-${alignment}` : 'text-center'}`}>
+            {isSelected && (
+              <ImageToolbar 
+                editor={editor} 
+                element={element as ImageElement} 
+                path={ReactEditor.findPath(editor, element)}
+                showControls="all"
+                className="mb-2"
+                mode="inline"
+              />
+            )}
             <img 
               src={url} 
-              alt={alt} 
-              className="max-w-full h-auto rounded mx-auto"
+              alt={alt || ''} 
+              className={`h-auto rounded ${getImageSizeClass(size)} ${getImageAlignmentClass(alignment)}`}
+              style={{
+                ...generateImageFilterStyle(element as ImageElement),
+                ...getImageTransitionStyle()
+              }}
             />
             {alt && (
               <p style={{ ...style, marginTop: '0.25rem', marginBottom: '0.25rem', fontSize: '0.875rem', color: 'gray' }}>{alt}</p>

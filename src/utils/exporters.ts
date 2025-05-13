@@ -67,22 +67,29 @@ export const exportToHtml = (
   // This is a simplified HTML output - could be enhanced with proper HTML rendering
   const { content } = generateMarkdownOutput(editorState, undefined, { includeFormatting: true });
   
-  // Very basic markdown to HTML conversion
-  // In a production app, you'd use a proper markdown-to-html library
+  // Process content to preserve any HTML tags already in the markdown (particularly for our enhanced images)
   const htmlContent = content
+    // First, temporarily protect any existing HTML tags in the markdown
+    .replace(/<img[^>]*>/g, match => `<!--HTML_PRESERVE_${btoa(match)}-->`)
+    
+    // Standard markdown conversions
     .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
     .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
     .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`(.*?)`/g, '<code>$1</code>')
+    // Only convert standard markdown images, not our enhanced ones that are already in HTML
     .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">')
     .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
     .replace(/^- (.*?)$/gm, '<li>$1</li>')
     .replace(/<\/li>\n<li>/g, '</li><li>')
     .replace(/(?:^<li>.*<\/li>$)/gm, '<ul>$&</ul>')
     .replace(/^> (.*?)$/gm, '<blockquote>$1</blockquote>')
-    .replace(/\n\n/g, '<br><br>');
+    .replace(/\n\n/g, '<br><br>')
+    
+    // Restore preserved HTML tags
+    .replace(/<!--HTML_PRESERVE_(.*?)-->/g, (_, encoded) => atob(encoded));
   
   return `
 <!DOCTYPE html>

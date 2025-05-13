@@ -12,7 +12,7 @@ import {
   CustomElement
 } from '../types/editor';
 import { MarkdownFormat, MarkdownElementType, PostMetadata } from '../types/markdown';
-import { withImages } from '../components/editor/plugins/withImages';
+import { withImages, insertImageWithSize } from '../components/editor/plugins/withImages';
 import { withLinks } from '../components/editor/plugins/withLinks';
 import { withMarkdown } from '../components/editor/plugins/withMarkdown';
 import { withShortcuts } from '../components/editor/plugins/withShortcuts';
@@ -39,7 +39,7 @@ interface EditorContextValue {
   setFocusMode: (focus: boolean) => void;
   metadata: PostMetadata;
   setMetadata: (metadata: PostMetadata) => void;
-  insertImage: (url: string, alt?: string) => void;
+  insertImage: (url: string, alt?: string, size?: 'small' | 'medium' | 'large' | 'full') => void;
   insertLink: (url: string, text?: string) => void;
   toggleFormat: (format: MarkdownFormat | MarkdownElementType, isBlock?: boolean) => void;
   isFormatActive: (format: MarkdownFormat | MarkdownElementType, isBlock?: boolean) => boolean;
@@ -286,19 +286,11 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
   }, [editor, isFormatActive]);
 
   // Insert elements
-  const handleInsertImage = useCallback((url: string, alt?: string) => {
+  const handleInsertImage = useCallback((url: string, alt?: string, size?: 'small' | 'medium' | 'large' | 'full') => {
     if (!url) return;
     
-    // Create image element with proper typing
-    const image: ImageElement = {
-      type: 'image',
-      url,
-      alt: alt || '',
-      children: [{ text: '' }],
-    };
-    
-    // Insert the image node
-    Transforms.insertNodes(editor, image);
+    // Use the enhanced insertImageWithSize function instead
+    insertImageWithSize(editor, url, alt || '', size || 'medium');
   }, [editor]);
 
   const handleInsertLink = useCallback((url: string, text?: string) => {

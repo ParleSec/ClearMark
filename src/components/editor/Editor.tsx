@@ -10,6 +10,7 @@ import StatusBar from '../ui/StatusBar';
 import MarkdownPreview from '../ui/MarkdownPreview';
 import Modal from '../ui/Modal';
 import FloatingToolbar from '../toolbar/FloatingToolbar';
+import ImageToolbar from '../toolbar/ImageToolbar';
 import KeyboardShortcuts from '../toolbar/KeyboardShortcuts';
 import SaveStatus from '../ui/SaveStatus';
 
@@ -35,6 +36,7 @@ const Editor: React.FC = () => {
   // Form values for modals
   const [imageUrl, setImageUrl] = React.useState('');
   const [imageAlt, setImageAlt] = React.useState('');
+  const [imageSize, setImageSize] = React.useState<'small' | 'medium' | 'large' | 'full'>('medium');
   const [linkUrl, setLinkUrl] = React.useState('');
   const [linkText, setLinkText] = React.useState('');
   
@@ -77,9 +79,10 @@ const Editor: React.FC = () => {
   
   const handleImageSubmit = () => {
     if (imageUrl) {
-      insertImage(imageUrl, imageAlt);
+      insertImage(imageUrl, imageAlt, imageSize);
       setImageUrl('');
       setImageAlt('');
+      setImageSize('medium');
       setShowImageModal(false);
     }
   };
@@ -134,6 +137,9 @@ const Editor: React.FC = () => {
         
         {/* Floating toolbar - completely hidden in focus mode and on small screens */}
         {!focusMode && !showMarkdown && <FloatingToolbar />}
+        
+        {/* Floating image toolbar - shown when an image is selected */}
+        {!focusMode && !showMarkdown && <ImageToolbar mode="floating" showControls="basic" />}
         
         {/* Main editor area with keyboard shortcuts */}
         <div className={`flex flex-col lg:flex-row flex-1 h-full ${focusMode ? 'main-content' : ''}`}>
@@ -214,6 +220,23 @@ const Editor: React.FC = () => {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
               placeholder="Image description"
             />
+          </div>
+          
+          <div>
+            <label htmlFor="imageSize" className="block text-sm font-medium text-gray-700">
+              Image Size
+            </label>
+            <select
+              id="imageSize"
+              value={imageSize}
+              onChange={e => setImageSize(e.target.value as 'small' | 'medium' | 'large' | 'full')}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
+            >
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+              <option value="full">Full Width</option>
+            </select>
           </div>
           
           <div className="flex justify-end space-x-2 pt-2">

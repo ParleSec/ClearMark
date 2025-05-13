@@ -93,6 +93,11 @@ export const insertImageWithSize = (
     alt,
     size, // Store size preference for rendering
     alignment: 'center', // Default to center alignment
+    brightness: 100, // Default brightness
+    contrast: 100, // Default contrast
+    saturation: 100, // Default saturation
+    blur: 0, // Default blur
+    grayscale: false, // Default grayscale
     children: [{ text: '' }],
   };
 

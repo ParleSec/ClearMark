@@ -75,7 +75,74 @@ const elementToMarkdown: ElementToMarkdown = {
   
   [MarkdownElementType.CodeBlock]: (_, children) => `\`\`\`\n${children}\n\`\`\``,
   
-  [MarkdownElementType.Image]: (node) => `![${node.alt || ''}](${node.url})`,
+  [MarkdownElementType.Image]: (node) => {
+    const { url, alt, size, alignment, filter, brightness, contrast, saturation, blur, grayscale } = node;
+    const hasExtendedProps = size || alignment || filter || 
+                           (brightness && brightness !== 100) || 
+                           (contrast && contrast !== 100) || 
+                           (saturation && saturation !== 100) || 
+                           (blur && blur > 0) || 
+                           grayscale;
+    
+    // For basic images, use standard markdown syntax
+    if (!hasExtendedProps) {
+      return `![${alt || ''}](${url})`;
+    }
+    
+    // For enhanced images, use HTML with inline styling to preserve features
+    let imgHtml = `<img src="${url}" alt="${alt || ''}"`;
+    
+    // Add size class
+    if (size) {
+      switch (size) {
+        case 'small': imgHtml += ' width="25%"'; break;
+        case 'medium': imgHtml += ' width="50%"'; break;
+        case 'large': imgHtml += ' width="75%"'; break;
+        case 'full': imgHtml += ' width="100%"'; break;
+      }
+    }
+    
+    // Start style attribute
+    imgHtml += ' style="';
+    
+    // Add alignment as CSS properties
+    if (alignment) {
+      imgHtml += 'display: block;';
+      switch (alignment) {
+        case 'left': imgHtml += 'margin-right: auto;'; break;
+        case 'center': imgHtml += 'margin-left: auto; margin-right: auto;'; break;
+        case 'right': imgHtml += 'margin-left: auto;'; break;
+      }
+    }
+    
+    // Add filter and adjustments as CSS filters
+    let filterProps = [];
+    if (brightness && brightness !== 100) filterProps.push(`brightness(${brightness / 100})`);
+    if (contrast && contrast !== 100) filterProps.push(`contrast(${contrast / 100})`);
+    if (saturation && saturation !== 100) filterProps.push(`saturate(${saturation / 100})`);
+    if (blur && blur > 0) filterProps.push(`blur(${blur / 10}px)`);
+    if (grayscale) filterProps.push('grayscale(1)');
+    
+    // Add preset filters
+    if (filter) {
+      switch (filter) {
+        case 'warm': filterProps.push('sepia(0.3)'); break;
+        case 'cool': filterProps.push('hue-rotate(30deg)'); break;
+        case 'vivid': filterProps.push('saturate(1.5)'); break;
+        case 'muted': filterProps.push('saturate(0.7)'); break;
+        case 'vintage': filterProps.push('sepia(0.5) hue-rotate(-30deg)'); break;
+      }
+    }
+    
+    if (filterProps.length > 0) {
+      imgHtml += `filter: ${filterProps.join(' ')};`;
+    }
+    
+    // Close style and tag
+    imgHtml += '">';
+    
+    return imgHtml;
+  },
   
   [MarkdownElementType.Link]: (node, children) => `[${children}](${node.url})`,
 
