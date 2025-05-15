@@ -86,6 +86,18 @@ export const insertImageWithSize = (
   alt: string = '',
   size: 'small' | 'medium' | 'large' | 'full' = 'medium'
 ): void => {
+  // Ensure there is a paragraph before the image
+  const { selection } = editor;
+  if (selection) {
+    const [node] = Editor.node(editor, selection);
+    if (!Element.isElement(node) || node.type !== 'paragraph') {
+      Transforms.insertNodes(editor, {
+        type: 'paragraph',
+        children: [{ text: '' }],
+      });
+    }
+  }
+
   // Create the image element with size information
   const image: ImageElement = {
     type: 'image',
@@ -104,21 +116,47 @@ export const insertImageWithSize = (
   // Insert the image at the current selection
   Transforms.insertNodes(editor, image);
   
-  // Move selection after the image
+  // Try to move selection after the image
   try {
     Transforms.move(editor, { distance: 1 });
+    // Check if selection is now on a paragraph, if not, insert one
+    const { selection } = editor;
+    if (selection) {
+      const [node] = Editor.node(editor, selection);
+      if (!Element.isElement(node) || node.type !== 'paragraph') {
+        // Insert a paragraph and move selection into it
+        const path = Editor.path(editor, selection);
+        const newPath = Path.next(path);
+        Transforms.insertNodes(editor, {
+          type: 'paragraph',
+          children: [{ text: '' }],
+        }, { at: newPath });
+        Transforms.select(editor, Editor.start(editor, newPath));
+      }
+    }
   } catch (e) {
     // If we can't move after (e.g., image is at document end), 
-    // just make sure we have a paragraph to type in
+    // just make sure we have a paragraph to type in and move selection into it
+    const { selection } = editor;
+    let inserted = false;
     const [match] = Editor.nodes(editor, {
       match: n => !Editor.isEditor(n) && Element.isElement(n) && n.type === 'paragraph',
     });
-    
     if (!match) {
+      // Insert a new paragraph at the end
+      const end = Editor.end(editor, []);
       Transforms.insertNodes(editor, {
         type: 'paragraph',
         children: [{ text: '' }],
-      });
+      }, { at: Path.next(end.path) });
+      // Move selection into the new paragraph
+      Transforms.select(editor, Editor.start(editor, Path.next(end.path)));
+      inserted = true;
+    }
+    if (!inserted && match) {
+      // Move selection into the existing paragraph
+      const [node, path] = match;
+      Transforms.select(editor, Editor.start(editor, path));
     }
   }
 };

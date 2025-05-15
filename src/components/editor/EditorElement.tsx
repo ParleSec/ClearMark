@@ -89,20 +89,16 @@ export const EditorElement: React.FC<RenderElementProps> = ({
         <div 
           style={style} 
           {...attributes}
-          onMouseEnter={() => setIsSelected(true)}
-          onMouseLeave={() => setIsSelected(false)}
         >
           <div contentEditable={false} className={`my-4 ${alignment ? `text-${alignment}` : 'text-center'}`}>
-            {isSelected && (
-              <ImageToolbar 
-                editor={editor} 
-                element={element as ImageElement} 
-                path={ReactEditor.findPath(editor, element)}
-                showControls="all"
-                className="mb-2"
-                mode="inline"
-              />
-            )}
+            <ImageToolbar 
+              editor={editor} 
+              element={element as ImageElement} 
+              path={ReactEditor.findPath(editor, element)}
+              showControls="all"
+              className="mb-2"
+              mode="inline"
+            />
             <img 
               src={url} 
               alt={alt || ''} 

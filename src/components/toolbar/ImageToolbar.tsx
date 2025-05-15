@@ -12,9 +12,14 @@ import {
   Contrast,
   PaintBucket,
   Droplet,
-  EyeOff
+  EyeOff,
+  Edit,
+  Copy as CopyIcon,
+  Maximize,
+  Minimize,
+  Trash2
 } from 'lucide-react';
-import { Editor, Path, Node, Range, Element as SlateElement } from 'slate';
+import { Editor, Path, Node, Range, Element as SlateElement, Transforms } from 'slate';
 import { ReactEditor, useSlate } from 'slate-react';
 import { CustomEditor, ImageElement } from '../../types/editor';
 import { updateImageProperties } from '../editor/plugins/withImages';
@@ -52,6 +57,12 @@ const ImageToolbar: React.FC<ImageToolbarProps> = ({
     path: Path;
     domNode: HTMLElement | null;
   } | null>(null);
+  
+  // Expanded state for maximize/minimize
+  const [isExpanded, setIsExpanded] = useState(false);
+  // Alt text edit state
+  const [editingAlt, setEditingAlt] = useState(false);
+  const [altValue, setAltValue] = useState(propElement?.alt || '');
   
   // Use props if provided (inline mode) or find selected image (floating mode)
   const element = propElement || (selectedImage?.element);
@@ -166,6 +177,27 @@ const ImageToolbar: React.FC<ImageToolbarProps> = ({
     });
   };
   
+  // Handlers for actions
+  const handleEditAlt = () => {
+    setEditingAlt(true);
+    setAltValue(element.alt || '');
+  };
+  const handleSaveAlt = () => {
+    updateImageProperties(editor, path, { alt: altValue });
+    setEditingAlt(false);
+  };
+  const handleCopyUrl = () => {
+    if (element.url) {
+      navigator.clipboard.writeText(element.url);
+    }
+  };
+  const handleToggleExpand = () => {
+    setIsExpanded(exp => !exp);
+  };
+  const handleDelete = () => {
+    Transforms.removeNodes(editor, { at: path });
+  };
+  
   // Only show controls as configured
   const showBasicControls = showControls === 'all' || showControls === 'basic';
   const showAdvancedControls = (showControls === 'all' && showAdvanced) || showControls === 'advanced';
@@ -177,30 +209,54 @@ const ImageToolbar: React.FC<ImageToolbarProps> = ({
     
   // Creating the toolbar content
   const toolbarContent = (
-    <div className={containerClasses} onMouseDown={e => e.preventDefault()}>
-      {/* Header with title and toggle */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="font-medium text-sm flex items-center">
-          <ImageIcon size={16} className="mr-1" />
-          <span>Image Tools</span>
+    <div className={containerClasses + " p-0 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"} onMouseDown={e => e.preventDefault()}>
+      {/* Header with title and actions */}
+      <div className="bg-gray-50 border-b px-3 py-2 flex items-center space-x-2 rounded-t-lg">
+        <ImageIcon size={16} className="text-blue-500" />
+        <span className="font-medium text-gray-700 text-sm">Image Tools</span>
+        {/* Alt text and edit group */}
+        <div className="flex items-center space-x-1 ml-2">
+          {editingAlt ? (
+            <input
+              type="text"
+              value={altValue}
+              onChange={e => setAltValue(e.target.value)}
+              onBlur={handleSaveAlt}
+              onKeyDown={e => { if (e.key === 'Enter') handleSaveAlt(); if (e.key === 'Escape') setEditingAlt(false); }}
+              className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Alt text"
+              autoFocus
+            />
+          ) : (
+            <span className="text-xs text-gray-500 cursor-pointer hover:underline" title="Edit alt text" onClick={handleEditAlt}>
+              {element.alt ? `Alt: ${element.alt}` : 'Add alt text'}
+            </span>
+          )}
+          <button className="p-1 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded" title="Edit Alt Text" onClick={handleEditAlt}><Edit size={16} /></button>
         </div>
-        
-        {showControls === 'all' && (
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none text-sm flex items-center"
-          >
-            <Sliders size={14} className="mr-1" />
-            {showAdvanced ? 'Basic' : 'Advanced'}
-          </button>
-        )}
+        {/* Divider */}
+        <div className="h-5 w-px bg-gray-200 mx-2" />
+        {/* Copy, delete, advanced group */}
+        <div className="flex items-center space-x-1">
+          <button className="p-1 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded" title="Copy Image URL" onClick={handleCopyUrl}><CopyIcon size={16} /></button>
+          <button className="p-1 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded" title="Delete Image" onClick={handleDelete}><Trash2 size={16} /></button>
+          {showControls === 'all' && (
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none text-xs flex items-center transition-colors duration-200 px-2 py-1 rounded border border-gray-200 bg-white ml-2"
+            >
+              <Sliders size={14} className="mr-1" />
+              {showAdvanced ? 'Basic' : 'Advanced'}
+            </button>
+          )}
+        </div>
       </div>
-      
-      {/* Basic controls */}
-      {showBasicControls && (
-        <div className="flex flex-wrap gap-2 mb-2">
+      {/* Advanced controls (size and alignment) */}
+      {showAdvanced && (
+        <div className="flex flex-wrap gap-2 p-3 border-t bg-white rounded-b-lg">
           {/* Size controls */}
-          <div className="flex border rounded overflow-hidden">
+          <div className="flex items-center space-x-1">
+            <span className="text-xs text-gray-500 mr-1">Size:</span>
             <ToolbarButton
               icon={() => <Minimize2 size={16} />}
               onClick={() => handleSizeChange('small')}
@@ -226,9 +282,9 @@ const ImageToolbar: React.FC<ImageToolbarProps> = ({
               title="Full width"
             />
           </div>
-          
           {/* Alignment controls */}
-          <div className="flex border rounded overflow-hidden">
+          <div className="flex items-center space-x-1">
+            <span className="text-xs text-gray-500 mr-1">Align:</span>
             <ToolbarButton
               icon={AlignLeft}
               onClick={() => handleAlignmentChange('left')}
@@ -247,131 +303,6 @@ const ImageToolbar: React.FC<ImageToolbarProps> = ({
               isActive={currentAlignment === 'right'}
               title="Align right"
             />
-          </div>
-        </div>
-      )}
-      
-      {/* Advanced controls */}
-      {showAdvancedControls && (
-        <div className="pt-2 border-t">
-          {/* Filter presets */}
-          <div className="mb-3">
-            <div className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-1">Filter</div>
-            <div className="flex flex-wrap gap-1">
-              {['none', 'warm', 'cool', 'vivid', 'muted', 'vintage'].map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => handleFilterChange(filter === 'none' ? '' : filter)}
-                  className={`px-2 py-1 text-xs rounded ${
-                    element.filter === filter || (!element.filter && filter === 'none')
-                      ? 'bg-blue-100 border-blue-300'
-                      : 'bg-gray-50 border-gray-200'
-                  } border`}
-                >
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Sliders */}
-          <div className="space-y-3">
-            {/* Brightness slider */}
-            <div>
-              <div className="flex items-center mb-1">
-                <Sun size={12} className="mr-1" />
-                <label className="text-xs font-medium text-gray-700">
-                  Brightness
-                </label>
-              </div>
-              <input 
-                type="range" 
-                min="0" 
-                max="200" 
-                value={element.brightness ?? 100}
-                onChange={(e) => handleAdjustment('brightness', parseInt(e.target.value))}
-                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-200"
-              />
-            </div>
-            
-            {/* Contrast slider */}
-            <div>
-              <div className="flex items-center mb-1">
-                <Contrast size={12} className="mr-1" />
-                <label className="text-xs font-medium text-gray-700">
-                  Contrast
-                </label>
-              </div>
-              <input 
-                type="range" 
-                min="0" 
-                max="200" 
-                value={element.contrast ?? 100}
-                onChange={(e) => handleAdjustment('contrast', parseInt(e.target.value))}
-                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-200"
-              />
-            </div>
-            
-            {/* Saturation slider */}
-            <div>
-              <div className="flex items-center mb-1">
-                <PaintBucket size={12} className="mr-1" />
-                <label className="text-xs font-medium text-gray-700">
-                  Saturation
-                </label>
-              </div>
-              <input 
-                type="range" 
-                min="0" 
-                max="200" 
-                value={element.saturation ?? 100}
-                onChange={(e) => handleAdjustment('saturation', parseInt(e.target.value))}
-                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-200"
-              />
-            </div>
-            
-            {/* Blur slider */}
-            <div>
-              <div className="flex items-center mb-1">
-                <Droplet size={12} className="mr-1" />
-                <label className="text-xs font-medium text-gray-700">
-                  Blur
-                </label>
-              </div>
-              <input 
-                type="range" 
-                min="0" 
-                max="10" 
-                value={element.blur ?? 0}
-                onChange={(e) => handleAdjustment('blur', parseInt(e.target.value))}
-                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-200"
-              />
-            </div>
-          </div>
-          
-          {/* Toggles and buttons */}
-          <div className="flex justify-between items-center mt-3">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="grayscale"
-                checked={!!element.grayscale}
-                onChange={handleGrayscaleToggle}
-                className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <label htmlFor="grayscale" className="text-xs font-medium text-gray-700 flex items-center">
-                <EyeOff size={12} className="mr-1" />
-                Grayscale
-              </label>
-            </div>
-            
-            <button
-              onClick={handleReset}
-              className="flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs"
-            >
-              <RefreshCw size={12} className="mr-1" />
-              Reset
-            </button>
           </div>
         </div>
       )}
