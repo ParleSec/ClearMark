@@ -37,6 +37,8 @@ interface EditorContextValue {
   setShowMarkdown: (show: boolean) => void;
   focusMode: boolean;
   setFocusMode: (focus: boolean) => void;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
   metadata: PostMetadata;
   setMetadata: (metadata: PostMetadata) => void;
   insertImage: (url: string, alt?: string, size?: 'small' | 'medium' | 'large' | 'full') => void;
@@ -188,6 +190,32 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
   // UI states
   const [showMarkdown, setShowMarkdown] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  
+  // Toggle dark mode
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => {
+      const newValue = !prev;
+      // Apply dark class to document
+      if (newValue) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      // Save preference to localStorage
+      localStorage.setItem('darkMode', String(newValue));
+      return newValue;
+    });
+  }, []);
+  
+  // Initialize dark mode from localStorage on mount
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   // Generate markdown content from editor state
   const markdownContent = useMemo(() => {
@@ -361,6 +389,8 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
     setShowMarkdown,
     focusMode,
     setFocusMode,
+    darkMode,
+    toggleDarkMode,
     metadata,
     setMetadata,
     insertImage: handleInsertImage,

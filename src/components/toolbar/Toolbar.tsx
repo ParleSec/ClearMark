@@ -4,7 +4,7 @@ import {
   Link as LinkIcon, Image as ImageIcon, FileDown, Eye, 
   EyeOff, Copy, Maximize, Minimize, Table, Plus, Minus,
   Menu, X, MoreHorizontal, ChevronRight, ImagePlus,
-  Settings
+  Settings, Sun, Moon
 } from 'lucide-react';
 
 import ToolbarButton from './ToolbarButton';
@@ -44,6 +44,8 @@ const Toolbar: React.FC<{
     setShowMarkdown,
     focusMode,
     setFocusMode,
+    darkMode,
+    toggleDarkMode,
     metadata,
     toggleFormat,
     isFormatActive,
@@ -227,6 +229,12 @@ const Toolbar: React.FC<{
             icon={focusMode ? Minimize : Maximize}
             onClick={() => setFocusMode(!focusMode)}
             title={focusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+            mobileFriendly
+          />
+          <ToolbarButton
+            icon={darkMode ? Sun : Moon}
+            onClick={toggleDarkMode}
+            title={darkMode ? "Light Mode" : "Dark Mode"}
             mobileFriendly
           />
         </div>
@@ -637,6 +645,12 @@ const Toolbar: React.FC<{
               title={focusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
               mobileFriendly
             />
+            <ToolbarButton
+              icon={darkMode ? Sun : Moon}
+              onClick={toggleDarkMode}
+              title={darkMode ? "Light Mode" : "Dark Mode"}
+              mobileFriendly
+            />
           </div>
         </div>
       </div>
@@ -803,6 +817,11 @@ const Toolbar: React.FC<{
                 icon={focusMode ? Minimize : Maximize}
                 onClick={() => setFocusMode(!focusMode)}
                 title={focusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+              />
+              <ToolbarButton
+                icon={darkMode ? Sun : Moon}
+                onClick={toggleDarkMode}
+                title={darkMode ? "Light Mode" : "Dark Mode"}
               />
             </div>
           </div>
