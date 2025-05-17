@@ -194,16 +194,22 @@ const Toolbar: React.FC<{
     (window.navigator.userAgent.includes('Macintosh') && 'ontouchend' in document);
   
   return (
-    <div className={`bg-white/95 backdrop-blur-sm z-50 sticky top-0 transition-all duration-300
-      ${focusMode ? 'opacity-0 hover:opacity-100' : 'shadow-sm border-b border-gray-200'}`}
+    <div className={`bg-white/90 dark:bg-slate-900/95 backdrop-blur-md z-50 sticky top-0 transition-all duration-300
+      ${focusMode ? 'opacity-0 hover:opacity-100' : 'shadow-[0_1px_4px_rgba(14,165,233,0.07)] border-b border-sky-100/80 dark:border-sky-900/50'}`}
     >
       {/* Mobile header - hidden on iPad in landscape mode */}
-      <div className={`flex lg:hidden ${isTablet && isLandscape ? 'hidden' : 'flex'} items-center justify-between p-2 border-b border-gray-100`}>
+      <div className={`flex lg:hidden ${isTablet && isLandscape ? 'hidden' : 'flex'} items-center justify-between p-2 border-b border-sky-100/50 dark:border-sky-900/60`}>
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-md text-gray-700 bg-gray-50 hover:bg-gray-100 touch-manipulation"
+          className="p-2 rounded-[0.35rem] text-slate-700 dark:text-slate-200 bg-gradient-to-b from-slate-50 to-sky-50/40 dark:from-slate-800 dark:to-sky-900/30 hover:from-sky-50 hover:to-cyan-50/40 dark:hover:from-sky-900/30 dark:hover:to-cyan-900/20 border border-t-transparent border-x-sky-100/60 border-b-sky-200/80 dark:border-t-transparent dark:border-x-sky-800/30 dark:border-b-sky-700/50 touch-manipulation shadow-sm"
           aria-label={mobileMenuOpen ? 'Close toolbar' : 'Open toolbar'}
+          style={{
+            borderTopLeftRadius: '0.4rem',
+            borderTopRightRadius: '0.3rem',
+            borderBottomLeftRadius: '0.3rem',
+            borderBottomRightRadius: '0.5rem',
+          }}
         >
           {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           <span className="ml-1 text-sm font-medium">
@@ -241,82 +247,12 @@ const Toolbar: React.FC<{
       </div>
       
       {/* Mobile expanded menu - iPad-optimized layout */}
-      <div className={`lg:hidden ${isTablet && isLandscape ? 'hidden' : ''} overflow-hidden transition-all duration-300 
-        ${mobileMenuOpen ? 'max-h-[70vh] overflow-y-auto pb-4' : 'max-h-0'}`}>
-        <div className="px-3 space-y-4 pt-2">
-          {/* Frequently used formatting tools - grid layout for iPad */}
-          <div className="bg-gray-50 rounded-lg p-2.5">
-            <div className={`grid ${isTablet ? 'grid-cols-8' : 'grid-cols-6'} gap-1.5 justify-items-center`}>
-              <ToolbarButton 
-                icon={Bold} 
-                isActive={isFormatActive(MarkdownFormat.Bold)}
-                onClick={() => toggleFormat(MarkdownFormat.Bold)}
-                title="Bold"
-                keyboardShortcut="Ctrl+B"
-                mobileFriendly
-              />
-              <ToolbarButton 
-                icon={Italic} 
-                isActive={isFormatActive(MarkdownFormat.Italic)}
-                onClick={() => toggleFormat(MarkdownFormat.Italic)}
-                title="Italic"
-                keyboardShortcut="Ctrl+I"
-                mobileFriendly
-              />
-              <ToolbarButton 
-                icon={Code} 
-                isActive={isFormatActive(MarkdownFormat.Code)}
-                onClick={() => toggleFormat(MarkdownFormat.Code)}
-                title="Code"
-                keyboardShortcut="Ctrl+`"
-                mobileFriendly
-              />
-              <ToolbarButton 
-                icon={Hash} 
-                isActive={isFormatActive(MarkdownElementType.Heading1, true)}
-                onClick={() => toggleFormat(MarkdownElementType.Heading1, true)}
-                title="Heading 1"
-                mobileFriendly
-              />
-              <ToolbarButton 
-                icon={List} 
-                isActive={isFormatActive(MarkdownElementType.BulletedList, true)}
-                onClick={() => toggleFormat(MarkdownElementType.BulletedList, true)}
-                title="Bullet List"
-                mobileFriendly
-              />
-              <ToolbarButton 
-                icon={Quote} 
-                isActive={isFormatActive(MarkdownElementType.BlockQuote, true)}
-                onClick={() => toggleFormat(MarkdownElementType.BlockQuote, true)}
-                title="Quote"
-                mobileFriendly
-              />
-              {isTablet && (
-                <>
-                  <ToolbarButton
-                    icon={ImageIcon}
-                    onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
-                    title={isImageSelected() ? "Image Options" : "Insert Image"}
-                    mobileFriendly
-                  />
-                  <ToolbarButton
-                    icon={LinkIcon}
-                    onClick={onInsertLink}
-                    title="Insert Link"
-                    mobileFriendly
-                  />
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Remaining controls with iPad-optimized layout */}
-          <div className={`grid ${isTablet ? 'grid-cols-2 gap-6' : 'grid-cols-1 gap-0'}`}>
-            {/* Text formatting */}
-            <div>
-              <SectionLabel text="Format" />
-              <div className="flex flex-wrap items-center gap-1 mt-1.5">
+      {mobileMenuOpen && (
+        <div className={`py-3 px-2 bg-gradient-to-b from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-blue-950/30 border-b border-sky-100 dark:border-sky-900/50 overflow-auto ${isLandscape ? 'max-h-[40vh]' : 'max-h-[60vh]'}`}>
+          <div className="px-3 space-y-4 pt-2">
+            {/* Frequently used formatting tools - grid layout for iPad */}
+            <div className="bg-gray-50 rounded-lg p-2.5">
+              <div className={`grid ${isTablet ? 'grid-cols-8' : 'grid-cols-6'} gap-1.5 justify-items-center`}>
                 <ToolbarButton 
                   icon={Bold} 
                   isActive={isFormatActive(MarkdownFormat.Bold)}
@@ -341,32 +277,11 @@ const Toolbar: React.FC<{
                   keyboardShortcut="Ctrl+`"
                   mobileFriendly
                 />
-              </div>
-            </div>
-            
-            {/* Block formatting */}
-            <div>
-              <SectionLabel text="Blocks" />
-              <div className="flex flex-wrap items-center gap-1 mt-1.5">
                 <ToolbarButton 
                   icon={Hash} 
                   isActive={isFormatActive(MarkdownElementType.Heading1, true)}
                   onClick={() => toggleFormat(MarkdownElementType.Heading1, true)}
                   title="Heading 1"
-                  mobileFriendly
-                />
-                <ToolbarButton 
-                  icon={(props: IconProps) => <Hash {...props} size={15} />} 
-                  isActive={isFormatActive(MarkdownElementType.Heading2, true)}
-                  onClick={() => toggleFormat(MarkdownElementType.Heading2, true)}
-                  title="Heading 2"
-                  mobileFriendly
-                />
-                <ToolbarButton 
-                  icon={(props: IconProps) => <Hash {...props} size={14} />} 
-                  isActive={isFormatActive(MarkdownElementType.Heading3, true)}
-                  onClick={() => toggleFormat(MarkdownElementType.Heading3, true)}
-                  title="Heading 3"
                   mobileFriendly
                 />
                 <ToolbarButton 
@@ -377,92 +292,171 @@ const Toolbar: React.FC<{
                   mobileFriendly
                 />
                 <ToolbarButton 
-                  icon={ListOrdered} 
-                  isActive={isFormatActive(MarkdownElementType.NumberedList, true)}
-                  onClick={() => toggleFormat(MarkdownElementType.NumberedList, true)}
-                  title="Numbered List"
-                  mobileFriendly
-                />
-                <ToolbarButton 
                   icon={Quote} 
                   isActive={isFormatActive(MarkdownElementType.BlockQuote, true)}
                   onClick={() => toggleFormat(MarkdownElementType.BlockQuote, true)}
                   title="Quote"
                   mobileFriendly
                 />
+                {isTablet && (
+                  <>
+                    <ToolbarButton
+                      icon={ImageIcon}
+                      onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
+                      title={isImageSelected() ? "Image Options" : "Insert Image"}
+                      mobileFriendly
+                    />
+                    <ToolbarButton
+                      icon={LinkIcon}
+                      onClick={onInsertLink}
+                      title="Insert Link"
+                      mobileFriendly
+                    />
+                  </>
+                )}
               </div>
             </div>
             
-            {/* Insert options */}
-            <div>
-              <SectionLabel text="Insert" />
-              <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                <ToolbarButton 
-                  icon={ImageIcon} 
-                  onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
-                  title={isImageSelected() ? "Image Options" : "Insert Image"}
-                  mobileFriendly
-                />
-                <ToolbarButton 
-                  icon={LinkIcon} 
-                  onClick={onInsertLink} 
-                  title="Insert Link" 
-                  mobileFriendly
-                />
-                <DiagramButton />
-                <ToolbarButton
-                  icon={Table}
-                  onClick={() => insertTable()}
-                  title="Insert Table"
-                  mobileFriendly
-                />
-              </div>
-            </div>
-            
-            {/* Show table controls only when a table is active */}
-            {isTableActive() && (
+            {/* Remaining controls with iPad-optimized layout */}
+            <div className={`grid ${isTablet ? 'grid-cols-2 gap-6' : 'grid-cols-1 gap-0'}`}>
+              {/* Text formatting */}
               <div>
-                <SectionLabel text="Table" />
+                <SectionLabel text="Format" />
                 <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                  <ToolbarButton
-                    icon={Plus}
-                    onClick={insertRow}
-                    title="Insert Row"
+                  <ToolbarButton 
+                    icon={Bold} 
+                    isActive={isFormatActive(MarkdownFormat.Bold)}
+                    onClick={() => toggleFormat(MarkdownFormat.Bold)}
+                    title="Bold"
+                    keyboardShortcut="Ctrl+B"
                     mobileFriendly
                   />
-                  <ToolbarButton
-                    icon={Plus}
-                    onClick={insertColumn}
-                    title="Insert Column"
+                  <ToolbarButton 
+                    icon={Italic} 
+                    isActive={isFormatActive(MarkdownFormat.Italic)}
+                    onClick={() => toggleFormat(MarkdownFormat.Italic)}
+                    title="Italic"
+                    keyboardShortcut="Ctrl+I"
                     mobileFriendly
                   />
-                  <ToolbarButton
-                    icon={Minus}
-                    onClick={deleteRow}
-                    title="Delete Row"
-                    mobileFriendly
-                  />
-                  <ToolbarButton
-                    icon={Minus}
-                    onClick={deleteColumn}
-                    title="Delete Column"
+                  <ToolbarButton 
+                    icon={Code} 
+                    isActive={isFormatActive(MarkdownFormat.Code)}
+                    onClick={() => toggleFormat(MarkdownFormat.Code)}
+                    title="Code"
+                    keyboardShortcut="Ctrl+`"
                     mobileFriendly
                   />
                 </div>
               </div>
-            )}
-            
-            {/* Actions */}
-            <div>
-              <SectionLabel text="Actions" />
-              <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                <ToolbarButton
-                  icon={FileDown}
-                  onClick={handleExport}
-                  title="Export to .md File"
-                  mobileFriendly
-                />
+              
+              {/* Block formatting */}
+              <div>
+                <SectionLabel text="Blocks" />
+                <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                  <ToolbarButton 
+                    icon={Hash} 
+                    isActive={isFormatActive(MarkdownElementType.Heading1, true)}
+                    onClick={() => toggleFormat(MarkdownElementType.Heading1, true)}
+                    title="Heading 1"
+                    mobileFriendly
+                  />
+                  <ToolbarButton 
+                    icon={(props: IconProps) => <Hash {...props} size={15} />} 
+                    isActive={isFormatActive(MarkdownElementType.Heading2, true)}
+                    onClick={() => toggleFormat(MarkdownElementType.Heading2, true)}
+                    title="Heading 2"
+                    mobileFriendly
+                  />
+                  <ToolbarButton 
+                    icon={(props: IconProps) => <Hash {...props} size={14} />} 
+                    isActive={isFormatActive(MarkdownElementType.Heading3, true)}
+                    onClick={() => toggleFormat(MarkdownElementType.Heading3, true)}
+                    title="Heading 3"
+                    mobileFriendly
+                  />
+                  <ToolbarButton 
+                    icon={List} 
+                    isActive={isFormatActive(MarkdownElementType.BulletedList, true)}
+                    onClick={() => toggleFormat(MarkdownElementType.BulletedList, true)}
+                    title="Bullet List"
+                    mobileFriendly
+                  />
+                  <ToolbarButton 
+                    icon={ListOrdered} 
+                    isActive={isFormatActive(MarkdownElementType.NumberedList, true)}
+                    onClick={() => toggleFormat(MarkdownElementType.NumberedList, true)}
+                    title="Numbered List"
+                    mobileFriendly
+                  />
+                  <ToolbarButton 
+                    icon={Quote} 
+                    isActive={isFormatActive(MarkdownElementType.BlockQuote, true)}
+                    onClick={() => toggleFormat(MarkdownElementType.BlockQuote, true)}
+                    title="Quote"
+                    mobileFriendly
+                  />
+                </div>
               </div>
+              
+              {/* Insert options */}
+              <div>
+                <SectionLabel text="Insert" />
+                <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                  <ToolbarButton 
+                    icon={ImageIcon} 
+                    onClick={() => isImageSelected() ? setShowImageSubmenu(!showImageSubmenu) : onInsertImage()}
+                    title={isImageSelected() ? "Image Options" : "Insert Image"}
+                    mobileFriendly
+                  />
+                  <ToolbarButton 
+                    icon={LinkIcon} 
+                    onClick={onInsertLink} 
+                    title="Insert Link" 
+                    mobileFriendly
+                  />
+                  <DiagramButton />
+                  <ToolbarButton
+                    icon={Table}
+                    onClick={() => insertTable()}
+                    title="Insert Table"
+                    mobileFriendly
+                  />
+                </div>
+              </div>
+              
+              {/* Show table controls only when a table is active */}
+              {isTableActive() && (
+                <div>
+                  <SectionLabel text="Table" />
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    <ToolbarButton
+                      icon={Plus}
+                      onClick={insertRow}
+                      title="Insert Row"
+                      mobileFriendly
+                    />
+                    <ToolbarButton
+                      icon={Plus}
+                      onClick={insertColumn}
+                      title="Insert Column"
+                      mobileFriendly
+                    />
+                    <ToolbarButton
+                      icon={Minus}
+                      onClick={deleteRow}
+                      title="Delete Row"
+                      mobileFriendly
+                    />
+                    <ToolbarButton
+                      icon={Minus}
+                      onClick={deleteColumn}
+                      title="Delete Column"
+                      mobileFriendly
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -477,7 +471,7 @@ const Toolbar: React.FC<{
             </button>
           </div>
         </div>
-      </div>
+      )}
       
       {/* iPad-specific toolbar for landscape mode */}
       <div className={`${isTablet && isLandscape ? 'flex' : 'hidden'} lg:hidden items-center px-2 py-1.5 border-b border-gray-100`}>
@@ -658,7 +652,7 @@ const Toolbar: React.FC<{
       {/* Desktop toolbar */}
       <div className="hidden lg:block">
         {/* Main editing toolbar on the left */}
-        <div className="flex items-center p-1.5 border-b border-gray-100">
+        <div className="flex items-center p-1.5 border-b border-sky-100/70 dark:border-sky-900/60 bg-gradient-to-r from-slate-50/60 to-blue-50/10 dark:from-slate-900/80 dark:to-blue-950/20">
           <div className="flex items-center">
             {/* Text formatting */}
             <SectionLabel text="Format" />

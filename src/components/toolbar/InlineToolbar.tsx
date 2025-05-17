@@ -8,6 +8,7 @@ import ToolbarButton from './ToolbarButton';
 
 /**
  * Floating toolbar that appears when text is selected
+ * Updated with fluid, water-inspired styling
  */
 const InlineToolbar: React.FC = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -85,8 +86,15 @@ const InlineToolbar: React.FC = () => {
   return (
     <div
       ref={ref}
-      className="absolute -top-10000 -left-10000 bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700 p-1 flex z-50 opacity-0 transition-opacity"
-      style={{ transition: 'opacity 0.2s' }}
+      className="absolute -top-10000 -left-10000 bg-gradient-to-br from-white/95 to-sky-50/90 dark:from-slate-900/95 dark:to-sky-950/90 rounded-[0.35rem] shadow-lg border border-t-slate-100 border-x-slate-200/70 border-b-sky-200/70 dark:border-t-slate-800 dark:border-x-slate-800/70 dark:border-b-sky-800/60 p-1.5 flex z-50 opacity-0 transition-opacity backdrop-blur-md"
+      style={{
+        transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        borderTopLeftRadius: '0.4rem',
+        borderTopRightRadius: '0.3rem',
+        borderBottomLeftRadius: '0.3rem',
+        borderBottomRightRadius: '0.5rem',
+        boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08), 0 2px 4px rgba(14, 165, 233, 0.05)'
+      }}
       onMouseDown={e => {
         // Prevent losing selection when clicking toolbar
         e.preventDefault();
@@ -113,7 +121,7 @@ const InlineToolbar: React.FC = () => {
         title="Code"
       />
       
-      <div className="h-full w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+      <div className="h-6 w-px mx-1.5 bg-gradient-to-b from-sky-100/50 to-slate-200/60 dark:from-sky-800/30 dark:to-slate-700/40" />
       
       <ToolbarButton
         icon={Link}

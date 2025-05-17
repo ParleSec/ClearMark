@@ -8,7 +8,7 @@ import EditorLeaf from './EditorLeaf';
 import Toolbar from '../toolbar/Toolbar';
 import StatusBar from '../ui/StatusBar';
 import MarkdownPreview from '../ui/MarkdownPreview';
-import Modal from '../ui/Modal';
+import { Modal } from '../ui/Modal';
 import FloatingToolbar from '../toolbar/FloatingToolbar';
 import ImageToolbar from '../toolbar/ImageToolbar';
 import KeyboardShortcuts from '../toolbar/KeyboardShortcuts';
@@ -102,7 +102,7 @@ const Editor: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-slate-900 flex flex-col">
       <Slate
         editor={editor}
         initialValue={editorState}
@@ -111,10 +111,10 @@ const Editor: React.FC = () => {
         {/* Top toolbar - visible on hover in focus mode */}
         <div 
           className={`${focusMode ? 'toolbar' : ''} sticky top-0 z-50 ${
-            isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'
+            isScrolled ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-sm' : 'bg-white dark:bg-slate-900'
           }`}
         >
-          <div className="flex justify-between items-center px-2 sm:px-4 py-2 border-b">
+          <div className="flex justify-between items-center px-2 sm:px-4 py-2 border-b border-slate-200 dark:border-slate-800">
             <Toolbar 
               onInsertImage={handleInsertImage} 
               onInsertLink={handleInsertLink} 
@@ -127,7 +127,7 @@ const Editor: React.FC = () => {
         {focusMode && (
           <button
             onClick={() => setFocusMode(false)}
-            className="fixed top-4 right-4 z-50 p-2 bg-white/90 rounded-full shadow-md backdrop-blur-sm hover:bg-white transition-all"
+            className="fixed top-4 right-4 z-50 p-2 bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 rounded-full shadow-md backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-all"
             title="Exit focus mode"
           >
             <span className="hidden sm:inline">Exit Focus Mode</span>
@@ -153,7 +153,7 @@ const Editor: React.FC = () => {
                   placeholder={focusMode ? "Write your thoughts..." : "Start writing your blog post here..."}
                   spellCheck={true}
                   autoFocus={true}
-                  className={`outline-none min-h-screen prose prose-sm sm:prose-base lg:prose-lg ${
+                  className={`outline-none min-h-screen prose prose-sm sm:prose-base lg:prose-lg prose-slate dark:prose-invert ${
                     focusMode ? 'focus-mode-editor' : ''
                   } touch-manipulation`}
                 />
@@ -163,7 +163,7 @@ const Editor: React.FC = () => {
           
           {/* Markdown preview pane - completely hidden in focus mode, stacked on mobile */}
           {showMarkdown && !focusMode && (
-            <div className="w-full lg:w-1/2 border-t lg:border-t-0 lg:border-l border-gray-200">
+            <div className="w-full lg:w-1/2 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800">
               <MarkdownPreview />
             </div>
           )}
@@ -176,7 +176,7 @@ const Editor: React.FC = () => {
         {showScrollToTop && (
           <button
             onClick={scrollToTop}
-            className="fixed bottom-4 right-4 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all lg:hidden"
+            className="fixed bottom-4 right-4 z-50 p-3 bg-flow-600 text-white rounded-full shadow-lg hover:bg-flow-700 transition-all lg:hidden"
             aria-label="Scroll to top"
           >
             <ChevronUp size={20} />
@@ -190,9 +190,9 @@ const Editor: React.FC = () => {
         onClose={() => setShowImageModal(false)}
         title="Insert Image"
       >
-        <div className="space-y-4">
+        <div className="space-y-4 p-4">
           <div>
-            <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="imageUrl" className="block text-sm font-medium text-slate-800 dark:text-slate-100">
               Image URL
             </label>
             <input
@@ -200,7 +200,7 @@ const Editor: React.FC = () => {
               id="imageUrl"
               value={imageUrl}
               onChange={e => setImageUrl(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
+              className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-700 shadow-sm focus:border-flow-500 focus:ring-flow-500 p-2 text-base bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               placeholder="https://example.com/image.jpg"
               autoCapitalize="none"
               autoComplete="off"
@@ -209,7 +209,7 @@ const Editor: React.FC = () => {
           </div>
           
           <div>
-            <label htmlFor="imageAlt" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="imageAlt" className="block text-sm font-medium text-slate-800 dark:text-slate-100">
               Alt Text (optional)
             </label>
             <input
@@ -217,20 +217,20 @@ const Editor: React.FC = () => {
               id="imageAlt"
               value={imageAlt}
               onChange={e => setImageAlt(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
+              className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-700 shadow-sm focus:border-flow-500 focus:ring-flow-500 p-2 text-base bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               placeholder="Image description"
             />
           </div>
           
           <div>
-            <label htmlFor="imageSize" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="imageSize" className="block text-sm font-medium text-slate-800 dark:text-slate-100">
               Image Size
             </label>
             <select
               id="imageSize"
               value={imageSize}
               onChange={e => setImageSize(e.target.value as 'small' | 'medium' | 'large' | 'full')}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
+              className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-700 shadow-sm focus:border-flow-500 focus:ring-flow-500 p-2 text-base bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             >
               <option value="small">Small</option>
               <option value="medium">Medium</option>
@@ -243,7 +243,7 @@ const Editor: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowImageModal(false)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-600 text-base font-medium rounded-md text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               Cancel
             </button>
@@ -251,7 +251,7 @@ const Editor: React.FC = () => {
               type="button"
               onClick={handleImageSubmit}
               disabled={!imageUrl}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-flow-600 hover:bg-flow-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Insert
             </button>
@@ -265,9 +265,9 @@ const Editor: React.FC = () => {
         onClose={() => setShowLinkModal(false)}
         title="Insert Link"
       >
-        <div className="space-y-4">
+        <div className="space-y-4 p-4">
           <div>
-            <label htmlFor="linkUrl" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="linkUrl" className="block text-sm font-medium text-slate-800 dark:text-slate-100">
               Link URL
             </label>
             <input
@@ -275,7 +275,7 @@ const Editor: React.FC = () => {
               id="linkUrl"
               value={linkUrl}
               onChange={e => setLinkUrl(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
+              className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-700 shadow-sm focus:border-flow-500 focus:ring-flow-500 p-2 text-base bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               placeholder="https://example.com"
               autoCapitalize="none"
               autoComplete="off"
@@ -284,7 +284,7 @@ const Editor: React.FC = () => {
           </div>
           
           <div>
-            <label htmlFor="linkText" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="linkText" className="block text-sm font-medium text-slate-800 dark:text-slate-100">
               Link Text (optional)
             </label>
             <input
@@ -292,7 +292,7 @@ const Editor: React.FC = () => {
               id="linkText"
               value={linkText}
               onChange={e => setLinkText(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-base"
+              className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-700 shadow-sm focus:border-flow-500 focus:ring-flow-500 p-2 text-base bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
               placeholder="Click here"
             />
           </div>
@@ -301,7 +301,7 @@ const Editor: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowLinkModal(false)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-600 text-base font-medium rounded-md text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               Cancel
             </button>
@@ -309,7 +309,7 @@ const Editor: React.FC = () => {
               type="button"
               onClick={handleLinkSubmit}
               disabled={!linkUrl}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-flow-600 hover:bg-flow-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Insert
             </button>

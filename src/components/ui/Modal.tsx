@@ -29,6 +29,45 @@ const Portal: React.FC<PortalProps> = ({ children }) => {
   );
 };
 
+// Add keyframes to a global style tag when the component mounts
+const ModalKeyframes = () => {
+  useEffect(() => {
+    // Create style element if it doesn't exist already
+    if (!document.getElementById('modal-animations')) {
+      const style = document.createElement('style');
+      style.id = 'modal-animations';
+      style.innerHTML = `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+        
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideDown {
+          from { opacity: 1; transform: translateY(0); }
+          to { opacity: 0; transform: translateY(10px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    return () => {
+      // Cleanup is optional since these animations might be used by other modals
+    };
+  }, []);
+  
+  return null;
+};
+
 // Basic Modal Component
 interface ModalProps {
   isOpen: boolean;
@@ -39,7 +78,7 @@ interface ModalProps {
 }
 
 /**
- * Simple modal component with extremely high z-index to ensure visibility
+ * Simple modal component with fluid design aesthetics
  */
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, width = 'md' }) => {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -103,74 +142,42 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, width =
   };
   
   return (
-    <div 
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 999999,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem'
-      }}
-    >
+    <Portal>
+      <ModalKeyframes />
       <div 
-        ref={modalRef}
+        className="fixed inset-0 z-[999999] bg-black/25 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-hidden"
         style={{
-          backgroundColor: 'white',
-          borderRadius: '0.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          maxWidth: width === 'lg' ? '56rem' : width === 'md' ? '32rem' : '24rem',
-          width: '100%',
-          maxHeight: 'calc(100vh - 2rem)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
+          animation: isOpen ? 'fadeIn 200ms ease forwards' : 'fadeOut 150ms ease forwards'
         }}
       >
-        {/* Header */}
         <div 
+          ref={modalRef}
+          className={`bg-white dark:bg-slate-900 ${getWidthClass()} w-full max-h-[calc(100vh-2rem)] rounded-fluid shadow-flow-lg dark:shadow-slate-900/50 flex flex-col overflow-hidden transform transition-all duration-300 ease-out`}
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '1rem',
-            borderBottom: '1px solid #e5e7eb',
-            backgroundColor: 'white'
+            animation: isOpen ? 'slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards' : 'slideDown 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 500 }}>
-            {title}
-          </h3>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.5rem',
-              color: '#9ca3af'
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
-        
-        {/* Body */}
-        <div 
-          style={{ 
-            overflowY: 'auto',
-            flexGrow: 1
-          }}
-        >
-          {children}
+          {/* Header with fluid design */}
+          <div className="flex justify-between items-center p-4 border-b border-flow-100 dark:border-slate-800 bg-gradient-to-r from-white to-flow-50 dark:from-slate-900 dark:to-slate-800">
+            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-50 m-0">
+              {title}
+            </h3>
+            <button
+              onClick={onClose}
+              className="rounded-full p-1.5 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+              aria-label="Close modal"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          
+          {/* Content with smooth scrolling */}
+          <div className="overflow-y-auto overscroll-contain flex-grow p-4 text-slate-900 dark:text-slate-100">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </Portal>
   );
 };
 
@@ -188,7 +195,7 @@ interface DialogModalProps {
 
 /**
  * A more flexible dialog modal component that uses Portal
- * Follows the same styling as other popups but with more options
+ * Follows the fluid, rainwater-inspired design system
  */
 const DialogModal: React.FC<DialogModalProps> = ({
   isOpen,
@@ -200,19 +207,17 @@ const DialogModal: React.FC<DialogModalProps> = ({
   closeOnClickOutside = true,
   closeOnEsc = true,
 }) => {
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  // Handle Escape key press
+  const dialogRef = useRef<HTMLDivElement>(null);
+  
+  // Handle Escape key
   useEffect(() => {
-    if (!closeOnEsc) return;
-    
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+      if (event.key === 'Escape' && isOpen && closeOnEsc) {
         onClose();
       }
     };
     
-    if (isOpen) {
+    if (isOpen && closeOnEsc) {
       document.addEventListener('keydown', handleKeyDown);
     }
     
@@ -221,17 +226,17 @@ const DialogModal: React.FC<DialogModalProps> = ({
     };
   }, [isOpen, onClose, closeOnEsc]);
   
-  // Handle clicking outside the modal
+  // Handle outside click
   useEffect(() => {
-    if (!closeOnClickOutside) return;
-    
     const handleOutsideClick = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (dialogRef.current && 
+          !dialogRef.current.contains(event.target as Node) &&
+          closeOnClickOutside) {
         onClose();
       }
     };
     
-    if (isOpen) {
+    if (isOpen && closeOnClickOutside) {
       document.addEventListener('mousedown', handleOutsideClick);
     }
     
@@ -240,22 +245,20 @@ const DialogModal: React.FC<DialogModalProps> = ({
     };
   }, [isOpen, onClose, closeOnClickOutside]);
   
-  // Prevent scrolling of background content
+  // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = 'hidden';
       
       return () => {
-        document.body.style.overflow = originalStyle;
+        document.body.style.overflow = '';
       };
     }
   }, [isOpen]);
   
-  // If modal is not open, don't render anything
   if (!isOpen) return null;
   
-  // Get width class based on prop
+  // Set width based on maxWidth prop
   const getWidthClass = () => {
     switch (maxWidth) {
       case 'sm': return 'max-w-sm';
@@ -268,29 +271,31 @@ const DialogModal: React.FC<DialogModalProps> = ({
   
   return (
     <Portal>
-      <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <ModalKeyframes />
+      <div className="fixed inset-0 z-[999999] bg-black/25 dark:bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-hidden animate-in fade-in duration-200">
         <div 
-          ref={modalRef}
-          className={`bg-white rounded-lg shadow-xl w-full ${getWidthClass()} max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden`}
+          ref={dialogRef}
+          className={`${getWidthClass()} w-full max-h-[calc(100vh-2rem)] bg-white dark:bg-slate-900 rounded-fluid shadow-flow-lg dark:shadow-slate-900/50 flex flex-col overflow-hidden animate-in slide-in-from-bottom-3 duration-300 ease-out`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
+          {/* Header with fluid gradient */}
+          <div className="flex justify-between items-center p-4 border-b border-flow-100 dark:border-slate-800 bg-gradient-to-r from-white to-flow-50 dark:from-slate-900 dark:to-slate-800">
+            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-50">
               {title}
             </h3>
+            
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-full p-1"
-                aria-label="Close"
+                className="rounded-full p-1.5 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+                aria-label="Close dialog"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             )}
           </div>
           
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Content area with smooth scrolling */}
+          <div className="overflow-y-auto overscroll-contain flex-grow scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-flow-200 hover:scrollbar-thumb-flow-300 dark:scrollbar-thumb-slate-600 dark:hover:scrollbar-thumb-slate-500 p-4 text-slate-900 dark:text-slate-100">
             {children}
           </div>
         </div>
@@ -299,5 +304,5 @@ const DialogModal: React.FC<DialogModalProps> = ({
   );
 };
 
-export { DialogModal, Portal };
-export default Modal;
+// Export both modal variants
+export { Modal, DialogModal };

@@ -3,23 +3,40 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #3b82f6;
-  --text-color: #1f2937;
+  --primary-color: #0284c7;
+  --primary-light: #e0f2fe;
+  --primary-dark: #0369a1;
+  --text-color: #1c1917;
+  --text-light: #44403c;
   --bg-color: #ffffff;
-  --bg-secondary: #f9fafb;
-  --border-color: #e5e7eb;
+  --bg-secondary: #f5f5f4;
+  --border-color: #e7e5e4;
+  --focus-ring: 0 0 0 2px rgba(2, 132, 199, 0.2);
+  
+  /* Fluid design variables */
+  --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --flow-gradient: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #e0f2fe 100%);
+  --flow-gradient-dark: linear-gradient(135deg, #075985 0%, #0c4a6e 50%, #075985 100%);
+  --border-radius-fluid: 0.5rem 1rem 0.5rem 1rem;
 }
 
 .dark {
-  --primary-color: #60a5fa;
-  --text-color: #1f2937;
-  --bg-color: #111827;
-  --bg-secondary: #1f2937;
-  --border-color: #374151;
+  --primary-color: #38bdf8;
+  --primary-light: #075985;
+  --primary-dark: #7dd3fc;
+  --text-color: #f8fafc;
+  --text-light: #cbd5e1;
+  --bg-color: #0f172a;
+  --bg-secondary: #1e293b;
+  --border-color: #334155;
+  --focus-ring: 0 0 0 2px rgba(56, 189, 248, 0.3);
 }
 
 .theme-sepia {
-  --text-color: #713f12;
+  --primary-color: #0284c7;
+  --primary-light: #e0f2fe;
+  --primary-dark: #0369a1;
+  --text-color: #422006;
   --bg-color: #fef3c7;
   --bg-secondary: #fef9e7;
   --border-color: #d4b78e;
@@ -28,35 +45,41 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
     Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   color: var(--text-color);
   background-color: var(--bg-color);
+  transition: background-color var(--transition-smooth), color var(--transition-smooth);
+  height: 100%;
+  min-height: 100vh;
+  line-height: 1.6;
 }
 
-/* Editor focus mode */
+/* Focus mode with fluid design */
 .focus-mode body {
-  background-color: #f5f5f5;
-  transition: background-color 0.3s ease;
+  background: var(--bg-secondary);
+  transition: all var(--transition-smooth);
 }
 
 .focus-mode-container.is-focused {
   position: relative;
-  background-color: #f5f5f5;
+  background: var(--bg-secondary);
 }
 
 .focus-mode-container.is-focused .editor-content {
   max-width: 760px;
   margin: 0 auto;
   padding: 3rem;
-  background-color: #ffffff;
-  border-radius: 0;
-  box-shadow: none;
-  transition: all 0.3s ease;
+  background-color: var(--bg-color);
+  border-radius: var(--border-radius-fluid);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.05), 
+              0 5px 10px -5px rgba(0, 0, 0, 0.01);
+  transition: all var(--transition-smooth);
   position: relative;
+  overflow: hidden;
 }
 
-/* Paper texture effect */
+/* Fluid background effect */
 .focus-mode-container.is-focused .editor-content::before {
   content: '';
   position: absolute;
@@ -64,34 +87,38 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
-    linear-gradient(90deg, rgba(0,0,0,.03) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,.03) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background: var(--flow-gradient);
+  background-size: 400% 400%;
+  animation: flow 15s ease infinite;
+  opacity: 0.02;
   pointer-events: none;
-  opacity: 0.5;
 }
 
+.dark .focus-mode-container.is-focused .editor-content::before {
+  background: var(--flow-gradient-dark);
+}
+
+/* Subtle flowing shadow at bottom */
 .focus-mode-container.is-focused .editor-content::after {
   content: '';
-  position: fixed;
-  top: 0;
+  position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0) 100px
-  );
+  height: 3px;
+  background: linear-gradient(90deg, 
+    rgba(14, 165, 233, 0) 0%, 
+    rgba(14, 165, 233, 0.2) 50%, 
+    rgba(14, 165, 233, 0) 100%);
+  background-size: 200% 100%;
+  animation: flow 8s ease infinite;
   pointer-events: none;
-  z-index: -1;
 }
 
 .focus-mode-container.is-focused .prose {
-  color: #333;
-  transition: color 0.3s ease;
-  font-family: 'Georgia', serif;
+  color: var(--text-color);
+  transition: color var(--transition-smooth);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.8;
   letter-spacing: 0.01em;
 }
@@ -100,7 +127,7 @@ html, body {
   margin: 1.5em 0;
   line-height: 1.8;
   letter-spacing: 0.01em;
-  text-align: justify;
+  transition: all var(--transition-smooth);
 }
 
 .focus-mode-container.is-focused .prose h1,
@@ -110,7 +137,8 @@ html, body {
   letter-spacing: -0.02em;
   margin-top: 2em;
   margin-bottom: 1em;
-  color: #222;
+  color: var(--text-color);
+  transition: color var(--transition-smooth);
 }
 
 .focus-mode-container.is-focused .prose h1 {
@@ -123,7 +151,7 @@ html, body {
 .focus-mode-container.is-focused .prose h2 {
   font-size: 2em;
   line-height: 1.3;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgba(14, 165, 233, 0.15);
   padding-bottom: 0.5em;
 }
 
@@ -137,13 +165,13 @@ html, body {
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.05) 0%,
-    rgba(0, 0, 0, 0) 50%,
-    rgba(0, 0, 0, 0.05) 100%
+    rgba(14, 165, 233, 0.01) 0%,
+    rgba(14, 165, 233, 0) 50%,
+    rgba(14, 165, 233, 0.01) 100%
   );
   z-index: 40;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-smooth);
 }
 
 .focus-mode-toggle {
@@ -153,23 +181,45 @@ html, body {
   background: rgba(255, 255, 255, 0.9);
   padding: 1rem;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.12);
+  transition: all var(--transition-smooth);
   z-index: 50;
   opacity: 0.8;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.1);
+  overflow: hidden;
 }
 
 .focus-mode-toggle:hover {
   opacity: 1;
-  transform: scale(1.05);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.15);
+}
+
+/* Ripple effect for focus mode toggle */
+.focus-mode-toggle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(14, 165, 233, 0.1);
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.focus-mode-toggle:active::after {
+  transform: scale(1.5);
+  opacity: 0;
+  transition: 0s;
 }
 
 /* Custom scrollbar for focus mode */
 .focus-mode ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
 }
 
 .focus-mode ::-webkit-scrollbar-track {
@@ -177,12 +227,12 @@ html, body {
 }
 
 .focus-mode ::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
+  background-color: rgba(14, 165, 233, 0.2);
+  border-radius: 4px;
 }
 
 .dark .focus-mode ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(56, 189, 248, 0.2);
 }
 
 /* Remove outline on slate editor in focus mode */
@@ -192,45 +242,54 @@ html, body {
 }
 
 /* Typing animation for focus mode */
-@keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
-}
-
-.focus-mode-container.is-focused .prose p {
-  overflow: hidden;
-  white-space: nowrap;
-  animation: typing 3.5s steps(40, end);
+@keyframes flow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
+  background-color: rgba(14, 165, 233, 0.2);
   border-radius: 4px;
+  transition: background-color var(--transition-smooth);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background-color: #4b5563;
+  background-color: rgba(56, 189, 248, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(14, 165, 233, 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(56, 189, 248, 0.4);
 }
 
 /* Prose utilities for editor content */
 .prose {
   max-width: 65ch;
   color: var(--text-color);
+  transition: color var(--transition-smooth);
 }
 
 .prose p {
   margin: 1.25em 0;
   line-height: 1.75;
+  transition: all var(--transition-smooth);
 }
 
 .prose h1 {
@@ -239,6 +298,7 @@ html, body {
   margin-bottom: 0.5em;
   font-weight: 700;
   line-height: 1.2;
+  transition: color var(--transition-smooth);
 }
 
 .prose h2 {
@@ -247,6 +307,7 @@ html, body {
   margin-bottom: 0.5em;
   font-weight: 700;
   line-height: 1.3;
+  transition: color var(--transition-smooth);
 }
 
 .prose h3 {
@@ -255,6 +316,7 @@ html, body {
   margin-bottom: 0.5em;
   font-weight: 600;
   line-height: 1.4;
+  transition: color var(--transition-smooth);
 }
 
 .prose ul, .prose ol {
@@ -263,220 +325,265 @@ html, body {
 }
 
 .prose blockquote {
-  border-left-width: 4px;
-  border-left-color: var(--border-color);
-  padding-left: 1em;
   font-style: italic;
-  margin: 1.25em 0;
+  border-left: 2px solid var(--primary-color);
+  margin-left: 0;
+  padding-left: 1em;
+  color: var(--text-light);
+  transition: all var(--transition-smooth);
 }
 
 .prose code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 0.875em;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
   background-color: var(--bg-secondary);
   padding: 0.2em 0.4em;
   border-radius: 0.25em;
+  transition: background-color var(--transition-smooth);
 }
 
 .prose pre {
   background-color: var(--bg-secondary);
-  padding: 1em;
-  border-radius: 0.25em;
+  padding: 1.25em;
+  border-radius: var(--border-radius-fluid);
   overflow-x: auto;
-  margin: 1.25em 0;
+  transition: background-color var(--transition-smooth);
+  position: relative;
 }
 
 .prose pre code {
   background-color: transparent;
   padding: 0;
+  font-size: 0.9em;
+  color: var(--text-color);
 }
 
-/* Focus mode editor specific styles */
 .focus-mode-editor {
-  background: transparent !important;
-  padding: 0 !important;
-  margin: 0 !important;
+  transition: all var(--transition-smooth);
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 1rem;
 }
 
 .focus-mode-editor:focus {
-  outline: none !important;
-  box-shadow: none !important;
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 0.25rem;
 }
 
-/* Hide all UI elements in focus mode */
 .focus-mode .toolbar,
-.focus-mode .status-bar,
-.focus-mode .floating-toolbar,
-.focus-mode .markdown-preview {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+.focus-mode .sidebar,
+.focus-mode .header,
+.focus-mode .footer,
+.focus-mode .status-bar {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-smooth), visibility var(--transition-smooth);
 }
 
-/* Focus mode toolbar */
 .focus-mode .toolbar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.95);
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 9999px;
+  padding: 0.5rem;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+  opacity: 0;
+  transition: opacity var(--transition-smooth), transform var(--transition-smooth);
+  z-index: 50;
 }
 
 .focus-mode .toolbar:hover {
   opacity: 1;
+  transform: translateX(-50%) translateY(2px);
 }
 
-/* Focus mode exit button */
 .focus-mode-exit {
   position: fixed;
-  top: 0.5rem;
-  right: 0.5rem;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
+  border: none;
+  border-radius: 9999px;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.25rem;
   font-size: 0.875rem;
-  color: #4b5563;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  opacity: 0;
-  z-index: 101;
+  transition: all var(--transition-smooth);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+  z-index: 50;
 }
 
 .focus-mode-exit:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.15);
 }
 
-/* Focus mode main content */
 .focus-mode .main-content {
-  margin-top: 0;
-  padding-top: 2rem;
+  max-width: 100%;
+  padding: 2rem;
+  margin: 0 auto;
+  transition: all var(--transition-smooth);
 }
 
-/* Diagram styles */
 .diagram-container {
-  margin: 1.5rem 0;
-  border: 1px solid var(--border-color);
-  border-radius: 0.375rem;
+  margin: 2rem 0;
+  border-radius: var(--border-radius-fluid);
   overflow: hidden;
+  transition: all var(--transition-smooth);
 }
 
 .diagram-render {
-  padding: 1rem;
-  background-color: #ffffff;
-  text-align: center;
-  min-height: 150px;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: var(--border-radius-fluid);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
+  overflow-x: auto;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  transition: all var(--transition-smooth);
 }
 
 .diagram-render svg {
   max-width: 100%;
-  margin: 0 auto;
-  filter: saturate(0.9);
+  height: auto;
+  transition: all var(--transition-smooth);
 }
 
 .dark .diagram-render {
-  background-color: #f0f0f0;
+  background-color: var(--bg-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Mobile Responsive Styles */
+/* Button and interactive element styling */
+button, 
+.btn,
+input[type="button"] {
+  transition: all var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ripple effect on buttons */
+button::after,
+.btn::after,
+input[type="button"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+button:active::after,
+.btn:active::after,
+input[type="button"]:active::after {
+  opacity: 0.3;
+  animation: ripple 0.4s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(20, 20);
+    opacity: 0;
+  }
+}
+
+/* Media queries */
 @media (max-width: 768px) {
   .prose {
     font-size: 0.95rem;
-    line-height: 1.6;
+    line-height: 1.7;
   }
   
   .prose h1 {
-    font-size: 1.75rem;
+    font-size: 1.75em;
   }
   
   .prose h2 {
-    font-size: 1.5rem;
+    font-size: 1.5em;
   }
   
   .prose h3 {
-    font-size: 1.25rem;
+    font-size: 1.25em;
   }
   
   .focus-mode-exit {
-    bottom: auto;
-    top: 0.5rem;
-    right: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.7rem;
-    min-height: auto !important;
-    min-width: auto !important;
-    max-width: fit-content;
-    opacity: 0.7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
   }
   
-  .focus-mode-exit:hover,
-  .focus-mode-exit:active {
-    opacity: 1;
+  .focus-mode-toggle {
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.75rem;
   }
   
   .focus-mode .toolbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
+    top: 0.5rem;
+    padding: 0.35rem;
   }
   
-  /* Improve touch targets for mobile */
   button, 
-  [role="button"] {
-    min-height: 2.5rem;
-    min-width: 2.5rem;
+  .btn,
+  input[type="button"] {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
   }
   
-  /* Smaller modal on mobile */
   .modal-content {
-    width: 95%;
-    max-width: 420px;
-    padding: 1rem;
+    width: 90%;
+    margin: 5% auto;
+    padding: 0.75rem;
   }
   
-  /* Improve text readability on mobile */
   .focus-mode-editor {
-    font-size: 1rem;
-    line-height: 1.6;
+    padding: 0.75rem;
   }
   
-  /* Adjust floating menus for touch */
   .floating-toolbar {
-    padding: 0.25rem;
+    padding: 0.35rem;
   }
   
   .floating-toolbar button {
-    margin: 0.125rem;
+    width: 2rem;
+    height: 2rem;
   }
 }
 
-/* Touch-friendly scrolling */
 * {
-  -webkit-overflow-scrolling: touch;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
 }
 
-/* Prevent zoom on inputs on iOS */
 @media screen and (max-width: 768px) {
   input[type="text"],
-  input[type="url"],
+  input[type="email"],
+  input[type="password"],
   textarea {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 }
