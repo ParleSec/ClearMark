@@ -59,6 +59,27 @@ The modular design ensures separation of concerns, with components, hooks, and c
 - Customizable themes
 - Clean, distraction-free interface
 
+### 💧 Fluid Design Methodology
+
+ClearMark's interface is inspired by the natural flow of water, creating a seamless, intuitive experience:
+
+- **Flow-Based Aesthetics**: Interface elements mimic the natural movement of rainwater flowing down a stream
+- **Asymmetric Border Radius**: Custom border-radius-fluid with varying corner values creates a subtle flow direction
+- **Gradient Transitions**: Smooth color gradients transition from sky to cyan tones, evoking the feel of moving water
+- **Depth & Transparency**: Strategic use of opacity and backdrop blur creates a sense of depth like looking through water
+- **Fluid Animations**: Transitions use custom cubic-bezier curves that follow the physics of fluid movement
+- **Cohesive Color Palette**: A carefully crafted "flow" palette with blues and teals connects all UI elements
+
+#### Design Implementation
+
+- **Light Mode**: Soft sky blues with subtle cyan accents mimicking daylight reflecting off water
+- **Dark Mode**: Deep slate and blue-black backgrounds that evoke flowing water at night
+- **Interactive Elements**: Buttons and controls feature directional styling that suggests downstream movement
+- **Dividers**: Gradient dividers that transition from light to dark, creating a sense of water flowing
+- **Shadows & Highlights**: Custom shadow effects give the impression of light passing through water
+
+This water-inspired design philosophy creates a more organic, natural interface that feels less rigid and mechanical than traditional UI designs, helping users feel more connected to the creative flow of writing.
+
 ### 🔧 Developer Experience
 
 - TypeScript support
@@ -162,5 +183,4 @@ The project follows a modular architecture with clear separation of concerns:
 
 
 ## License
-
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
