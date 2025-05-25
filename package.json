@@ -28,7 +28,7 @@
         "react-markdown": "^10.1.0",
         "react-syntax-highlighter": "^15.6.1",
         "remark-gfm": "^4.0.1",
-        "slate": "^0.94.1",
+        "slate": "^0.114.0",
         "slate-history": "^0.93.0",
         "slate-react": "^0.97.2",
         "tailwind-merge": "^3.2.0"
