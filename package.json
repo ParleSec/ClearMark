@@ -29,7 +29,7 @@
         "react-syntax-highlighter": "^15.6.1",
         "remark-gfm": "^4.0.1",
         "slate": "^0.94.1",
-        "slate-history": "^0.113.1",
+        "slate-history": "^0.115.0",
         "slate-react": "^0.97.2",
         "tailwind-merge": "^3.2.0"
     },
