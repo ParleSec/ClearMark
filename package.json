@@ -22,7 +22,7 @@
         "@types/react-syntax-highlighter": "^15.5.13",
         "clsx": "^2.1.1",
         "lucide-react": "^0.515.0",
-        "mermaid": "^11.6.0",
+        "mermaid": "^11.7.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-markdown": "^10.1.0",
